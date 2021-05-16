@@ -1,3 +1,4 @@
+local json = require("json")
 local mod = RegisterMod("Planetarium Chance Display", 1)
 
 function mod:onRender()
@@ -11,11 +12,14 @@ function mod:onRender()
     self.Font:DrawString(valueOutput, x+16, y, KColor(1,1,1,0.45),0,true)
     self.HudSprite:Render(Vector(x,y), Vector(0,0), Vector(0,0))
 
-    --green popup
+    --differential popup
     if self.Fontalpha and self.Fontalpha>0 then
         local alpha = self.Fontalpha
         if self.Fontalpha > 0.45 then
             alpha = 0.45
+        end
+        if self.previousFloorSpawnChance == nil then 
+            self.previousFloorSpawnChance = self.currentFloorSpawnChance
         end
         local difference = self.currentFloorSpawnChance - self.previousFloorSpawnChance;
         local differenceOutput = string.format("%.1f%%", difference)
@@ -28,10 +32,30 @@ function mod:onRender()
     end
 end
 
+function mod:exit()
+    local data = {}
+    if self.visited then
+        data["visited"]=true
+    end
+    if data then
+        mod:SaveData(json.encode(data))
+    end
+    --TODO cleanup sprite
+
+end
+
 function mod:init(continued)
     if not continued then
         self.currentFloorSpawnChance = nil
         self.visited = false
+        mod:RemoveData()
+    elseif(mod:HasData()) then
+        local data = json.decode(mod:LoadData())
+        for key,value in pairs(data) do --actualcode
+            if value == 'visited' then
+                self.visited = true
+            end
+        end
     end
 
     self.HudSprite = Sprite()
@@ -138,7 +162,7 @@ function log(text)
     Isaac.DebugString(tostring(text))
 end
 
-local function test()
+function mod:test()
 
 end
 
@@ -146,6 +170,7 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.updatePlanetariumChance);
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.checkForPlanetarium);
 
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.init);
+mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.exit);
 
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.onRender);
-mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, test)
+mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.test)

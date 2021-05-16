@@ -49,10 +49,10 @@ function mod:updatePlanetariumChance()
     --Planetariums can also not normally be encountered after Depths II, though Telescope Lens allows them to appear in  Womb and  Corpse.
     if (stage <= LevelStage.STAGE3_2) or (stage > LevelStage.STAGE3_2 and stage < LevelStage.STAGE5 and Isaac.GetPlayer():HasTrinket(TrinketType.TRINKET_TELESCOPE_LENS)) then --Before Womb or Between Womb/Utero with Telescope Lens
         local treasureSkips = skippedRooms();
-        -- log("----")
-        -- log(stage)
-        -- log(treasureSkips)
-        -- log("----")
+        log("----")
+        log(stage)
+        log(treasureSkips)
+        log("----")
         self.currentFloorSpawnChance = 1+(100*(0.2 * treasureSkips)); --chance before items
 
         --items
@@ -110,8 +110,10 @@ function skippedRooms()
     local treasurerooms_visited = game:GetTreasureRoomVisitCount();
     local stage = level:GetStage();
 
+    --Gotta handle those XL floors somehow!!! >:(
+    if(level:GetCurses() == LevelCurse.CURSE_OF_LABYRINTH) then stage = stage+1 end
+
     skippedTreasure = stage - treasurerooms_visited;
-    
 
     local rooms = level:GetRooms();
     for i = 0, #rooms-1 do
@@ -122,7 +124,6 @@ function skippedRooms()
             end
         end
     end
-    log(skippedTreasure);
     return skippedTreasure;
 end
 

@@ -1,8 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <metadata>
-	<name>Planetarium Chance</name>
-	<directory>Planetarium Chance</directory>
-	<description/>
-	<version>1.0</version>
-	<visibility/>
+    <name>Planetarium Chance</name>
+    <directory>planetarium chance</directory>
+    <id>2489006943</id>
+    <description>Displays the chance of a planetarium being present (on the current floor) in the HUD. Takes into account all items, collectibles and modifiers.</description>
+    <version>1.2</version>
+    <visibility>Public</visibility>
+    <tag id="Lua"/>
+    <tag id="Tweaks"/>
+    <tag id="Graphics"/>
 </metadata>
-

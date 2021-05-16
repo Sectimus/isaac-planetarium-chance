@@ -80,17 +80,17 @@ function mod:updatePlanetariumChance()
         self.storage.currentFloorSpawnChance = 1+(100*(0.2 * treasureSkips)); --chance before items
 
         --items
+        if Isaac.GetPlayer():HasTrinket(TrinketType.TRINKET_TELESCOPE_LENS) then
+            self.storage.currentFloorSpawnChance = self.storage.currentFloorSpawnChance + 9;
+        end
         if Isaac.GetPlayer():HasCollectible(CollectibleType.COLLECTIBLE_MAGIC_8_BALL) then
             self.storage.currentFloorSpawnChance = self.storage.currentFloorSpawnChance + 15;
         end
         if Isaac.GetPlayer():HasCollectible(CollectibleType.COLLECTIBLE_CRYSTAL_BALL) then
             self.storage.currentFloorSpawnChance = self.storage.currentFloorSpawnChance + 15;
-            -- if treasureSkips > 0 then --The Crystal Ball bonus is 100% if a Treasure Room has been skipped (THIS IS FALSE)
-            --     self.storage.currentFloorSpawnChance = 100;
-            -- end
-        end
-        if Isaac.GetPlayer():HasTrinket(TrinketType.TRINKET_TELESCOPE_LENS) then
-            self.storage.currentFloorSpawnChance = self.storage.currentFloorSpawnChance + 9;
+            if treasureSkips > 0 then --The Crystal Ball bonus is 100% if a Treasure Room has been skipped
+                self.storage.currentFloorSpawnChance = 100;
+            end
         end
 
         --visited already

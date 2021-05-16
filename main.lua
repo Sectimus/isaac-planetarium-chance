@@ -19,7 +19,11 @@ function mod:onRender()
         end
         local difference = self.currentFloorSpawnChance - self.previousFloorSpawnChance;
         local differenceOutput = string.format("%.1f%%", difference)
-        self.Font:DrawString("+"..differenceOutput, x+16+self.Font:GetStringWidth(differenceOutput)+3, y, KColor(0,1,0,alpha),0,true)
+        if difference>0 then --positive difference
+            self.Font:DrawString("+"..differenceOutput, x+16+self.Font:GetStringWidth(differenceOutput)+3, y, KColor(0,1,0,alpha),0,true)
+        elseif difference<0 then --negative difference
+            self.Font:DrawString(differenceOutput, x+16+self.Font:GetStringWidth(differenceOutput)+3, y, KColor(1,0,0,alpha),0,true)
+        end
         self.Fontalpha = self.Fontalpha-0.01
     end
 end
@@ -41,7 +45,6 @@ function mod:init(continued)
 end
 
 -- update on level transition
---TODO XL floors are jank af
 function mod:updatePlanetariumChance()
     self.previousFloorSpawnChance = self.currentFloorSpawnChance
     local game = Game();
@@ -68,14 +71,13 @@ function mod:updatePlanetariumChance()
         end
         if Isaac.GetPlayer():HasTrinket(TrinketType.TRINKET_TELESCOPE_LENS) then
             self.currentFloorSpawnChance = self.currentFloorSpawnChance + 9;
-
-            --TODO If Isaac enters a Planetarium, the chance will be set to 1% and can be increased only with a Telescope Lens, by 15%.
         end
 
         --visited already
         if self.visited then
             self.currentFloorSpawnChance = 1
             if Isaac.GetPlayer():HasTrinket(TrinketType.TRINKET_TELESCOPE_LENS) then
+                --If Isaac enters a Planetarium, the chance will be set to 1% and can be increased only with a Telescope Lens, by 15%.
                 self.currentFloorSpawnChance = 15
             end
         end

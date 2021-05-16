@@ -1,10 +1,8 @@
 local json = require("json")
-local mod = RegisterMod("Planetarium Chance Display", 1)
+local mod = RegisterMod("Planetarium Chance", 1)
 
 function mod:onRender()
-    if not(Game().Difficulty == Difficulty.DIFFICULTY_NORMAL or Game().Difficulty == Difficulty.DIFFICULTY_HARD) then
-        return;
-    end
+    if mod:shouldDeHook() then return end
     x = 21; 
     y = 197;
     local valueOutput = string.format("%.1s%%", "?")
@@ -36,10 +34,7 @@ function mod:onRender()
 end
 
 function mod:exit()
-    --Planetariums can only appear on normal / hard
-    if not(Game().Difficulty == Difficulty.DIFFICULTY_NORMAL or Game().Difficulty == Difficulty.DIFFICULTY_HARD) then
-        return;
-    end
+    if mod:shouldDeHook() then return end
     if self.storage then
         mod:SaveData(json.encode(self.storage))
     end
@@ -47,10 +42,7 @@ function mod:exit()
 end
 
 function mod:init(continued)
-    --Planetariums can only appear on normal / hard
-    if not(Game().Difficulty == Difficulty.DIFFICULTY_NORMAL or Game().Difficulty == Difficulty.DIFFICULTY_HARD) then
-    return;
-    end
+    if mod:shouldDeHook() then return end
 
     self.storage = {}
 
@@ -73,9 +65,7 @@ end
 
 -- update on level transition
 function mod:updatePlanetariumChance()
-    if not(Game().Difficulty == Difficulty.DIFFICULTY_NORMAL or Game().Difficulty == Difficulty.DIFFICULTY_HARD) then
-        return;
-    end
+    if mod:shouldDeHook() then return end
     self.storage.previousFloorSpawnChance = self.storage.currentFloorSpawnChance
     local game = Game();
     local level = game:GetLevel();
@@ -129,9 +119,7 @@ function mod:updatePlanetariumChance()
 end
 
 function mod:checkForPlanetarium()
-    if not(Game().Difficulty == Difficulty.DIFFICULTY_NORMAL or Game().Difficulty == Difficulty.DIFFICULTY_HARD) then
-        return;
-    end
+    if mod:shouldDeHook() then return end
     local room = Game():GetRoom();
     if(room:GetType() == RoomType.ROOM_PLANETARIUM) then
         self.storage.visited = true;
@@ -140,9 +128,7 @@ end
 
 -- Returns the amount of skipped treasure rooms (does not count the current floor room if it has not been entered yet)
 function skippedRooms()
-    if not(Game().Difficulty == Difficulty.DIFFICULTY_NORMAL or Game().Difficulty == Difficulty.DIFFICULTY_HARD) then
-        return;
-    end
+    if mod:shouldDeHook() then return end
     local skippedTreasure = 0;
     local game = Game();
     local level = game:GetLevel();
@@ -164,6 +150,15 @@ function skippedRooms()
         end
     end
     return skippedTreasure;
+end
+
+function mod:shouldDeHook()
+    local reqs = {
+        Game().Difficulty == Difficulty.DIFFICULTY_GREED,
+        Game().Difficulty == Difficulty.DIFFICULTY_GREEDIER,
+        Game():GetLevel():GetStage() > LevelStage.STAGE7
+    }
+    return reqs[1] or reqs[2] or reqs[3]
 end
 
 

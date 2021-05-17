@@ -179,7 +179,7 @@ function mod:update()
         self.coordx = 21;
         self.coordy = 197;
     end
-end/
+end
 ---------------------------------------------------------------------------------------------------------
 
 -- Custom Log Command

@@ -3,8 +3,8 @@ local mod = RegisterMod("Planetarium Chance", 1)
 
 function mod:onRender()
     if mod:shouldDeHook() then return end
-    x = 21; 
-    y = 197;
+    x = self.coordx; 
+    y = self.coordy;
     local valueOutput = string.format("%.1s%%", "?")
     if self.storage.currentFloorSpawnChance then
         valueOutput = string.format("%.1f%%", self.storage.currentFloorSpawnChance)
@@ -165,7 +165,21 @@ function mod:shouldDeHook()
     return reqs[1] or reqs[2] or reqs[3]
 end
 
-
+--This callback is called 30 times per second. It will not be called, when its paused (for example on screentransitions or on the pause menu).
+function mod:update()
+    --check for char differences
+    local playerType = Isaac.GetPlayer(0):GetPlayerType()
+    if playerType == PlayerType.PLAYER_BETHANY or playerType == PlayerType.PLAYER_BETHANY_B then 
+        self.coordx = 21;
+        self.coordy = 209;
+    elseif playerType == PlayerType.PLAYER_ESAU or playerType == PlayerType.PLAYER_JACOB then
+        self.coordx = 21;
+        self.coordy = 209;
+    else
+        self.coordx = 21;
+        self.coordy = 197;
+    end
+end/
 ---------------------------------------------------------------------------------------------------------
 
 -- Custom Log Command
@@ -180,6 +194,10 @@ end
 --init self storage from mod namespace before any callbacks by blocking.
 function mod:initStore()
     self.storage = {} 
+
+    --default hud offset (non-bethany/essau)
+    self.coordx = 21;
+    self.coordy = 197;
 end
 mod:initStore();
 
@@ -191,3 +209,6 @@ mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.exit);
 
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.onRender);
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.test)
+
+--update used to check for a char change (could use clicker? outside of render)
+mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.update)

@@ -8,6 +8,8 @@ function mod:onRender()
     local valueOutput = string.format("%.1s%%", "?")
     if self.storage.currentFloorSpawnChance then
         valueOutput = string.format("%.1f%%", self.storage.currentFloorSpawnChance)
+    else
+        mod:updatePlanetariumChance();
     end
 
     self.Font:DrawString(valueOutput, x+16, y, KColor(1,1,1,0.45),0,true)
@@ -44,8 +46,6 @@ end
 function mod:init(continued)
     if mod:shouldDeHook() then return end
 
-    self.storage = {}
-
     if not continued then
         self.storage.currentFloorSpawnChance = nil
         self.storage.visited = false
@@ -66,6 +66,7 @@ end
 -- update on level transition
 function mod:updatePlanetariumChance()
     if mod:shouldDeHook() then return end
+ 
     self.storage.previousFloorSpawnChance = self.storage.currentFloorSpawnChance
     local game = Game();
     local level = game:GetLevel();
@@ -158,6 +159,7 @@ function mod:shouldDeHook()
         Game().Difficulty == Difficulty.DIFFICULTY_GREEDIER,
         Game():GetLevel():GetStage() > LevelStage.STAGE7
     }
+
     return reqs[1] or reqs[2] or reqs[3]
 end
 
@@ -173,6 +175,11 @@ function mod:test()
 
 end
 
+--init self storage from mod namespace before any callbacks by blocking.
+function mod:initStore()
+    self.storage = {} 
+end
+mod:initStore();
 
 mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.updatePlanetariumChance);
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.checkForPlanetarium);

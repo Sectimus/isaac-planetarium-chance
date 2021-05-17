@@ -111,6 +111,8 @@ function mod:updatePlanetariumChance()
     --Planetarium chance can never be more than 100%. (technically 99.9% as there is never a 100% guarantee)
     if self.storage.currentFloorSpawnChance>99.9 then
         self.storage.currentFloorSpawnChance = 99.9;
+    elseif self.storage.currentFloorSpawnChance<0 then 
+        self.storage.currentFloorSpawnChance = 0;
     end
 
     --don't display popup if there is no change

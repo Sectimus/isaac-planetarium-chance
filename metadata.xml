@@ -3,8 +3,26 @@
     <name>Planetarium Chance</name>
     <directory>planetarium chance</directory>
     <id>2489006943</id>
-    <description>Displays the chance of a planetarium being present (on the current floor) in the HUD. Takes into account all items, collectibles and modifiers.</description>
-    <version>1.2</version>
+    <description>Displays the chance of a planetarium being present (on the current floor) in the HUD. Takes into account all items, collectibles and modifiers.
+
+[hr][/hr]
+
+[h1]Conguring the HUD offset:[/h1]
+[b][u]If you use an alternative HUD offset than the one provided by default in the options menu, pause your game by pressing "ESC" - whilst you are in the pause menu, press "k" or "l" respectively to decrease / increase the hud offset for the planetarium icon.[/u][/b]
+This is due to a limitation in the modding API, where mods cannot read the options.ini file or access any variable that contains the in-game HUD offset value.
+[hr][/hr]
+
+Make sure you have the requirements unlocked to be able to actually see the planetarium.
+
+Bear in mind 99.9% doesn't guarantee a spawn: "Note that the bonuses are additive (not multiplicative) and can reach 100%. However, only an attempt by the game to generate a Planetarium is guaranteed: they have the lowest priority in level generation and if the level does not have enough space, the room will not be placed. However, the bonus will remain intact for a later level if any remain." - https://bindingofisaacrebirth.fandom.com/wiki/Planetarium
+
+[hr][/hr]
+
+Have any ideas? Found a bug? visit the mod repository @ https://github.com/Sectimus/isaac-planetarium-chance
+
+⦿*There are some reports of the display not working in alt path. A fix is arriving in the next update (when I unlock alt-path!)*
+</description>
+    <version>1.4</version>
     <visibility>Public</visibility>
     <tag id="Lua"/>
     <tag id="Tweaks"/>

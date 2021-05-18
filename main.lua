@@ -62,7 +62,7 @@ function mod:init(continued)
     end
 
     --check char
-    self:updateCharCheck();
+    self:updateCheck();
     self:updatePosition();
 
     self.hudSprite = Sprite()
@@ -174,7 +174,7 @@ function mod:shouldDeHook()
         Game().Difficulty == Difficulty.DIFFICULTY_GREEDIER,
         Game():GetLevel():GetStage() > LevelStage.STAGE7,
         not self.initialized,
-        Isaac.GetPlayer():HasCollectible(CollectibleType.DADS_NOTE)
+        Isaac.GetPlayer():HasCollectible(CollectibleType.COLLECTIBLE_DADS_NOTE)
     }
 
     return reqs[1] or reqs[2] or reqs[3] or reqs[4] or reqs[5]
@@ -202,11 +202,16 @@ function mod:updatePosition(notches)
     if #self.storage.character > 1 then
         self.coordy = self.coordy+15;
     end
+
+    if Isaac.GetPlayer():HasCollectible(CollectibleType.COLLECTIBLE_DUALITY) then
+        self.coordy = self.coordy-10;
+    end
+
     self.coordx, self.coordy = self:hudoffset(notches, self.coordx, self.coordy, "topleft");
 end
 
 --checks if char has been changed
-function mod:updateCharCheck()
+function mod:updateCheck()
     local updatePos = false;
     if self.storage.character == nil or self.storage.character == 0 then self.storage.character = {} end
 
@@ -226,6 +231,9 @@ function mod:updateCharCheck()
             table.remove(self.storage.character, activePlayers+p)
         end
     end
+
+    --duality can move the icon
+    if(Isaac.GetPlayer():HasCollectible(CollectibleType.COLLECTIBLE_DUALITY)) then updatePos = true; end
 
     if updatePos then
         self:updatePosition();
@@ -305,7 +313,7 @@ mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.onRender);
 --mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.test)
 
 --update used to check for a char change (could use clicker? outside of render)
-mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.updateCharCheck)
+mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.updateCheck)
 
 --keyboard check for HUD scale changes
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.test)

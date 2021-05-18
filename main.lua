@@ -1,6 +1,8 @@
 local json = require("json")
 local mod = RegisterMod("Planetarium Chance", 1)
 
+local init=false;
+
 function mod:onRender()
     if mod:shouldDeHook() then return end
     x = self.coordx; 
@@ -54,6 +56,9 @@ function mod:init(continued)
     elseif(mod:HasData()) then
         self.storage = json.decode(mod:LoadData())
     end
+
+    --check char
+    self:updateCharCheck();
 
     self.HudSprite = Sprite()
     self.HudSprite:Load("gfx/ui/hudstats2.anm2", true)
@@ -159,7 +164,8 @@ function mod:shouldDeHook()
     local reqs = {
         Game().Difficulty == Difficulty.DIFFICULTY_GREED,
         Game().Difficulty == Difficulty.DIFFICULTY_GREEDIER,
-        Game():GetLevel():GetStage() > LevelStage.STAGE7
+        Game():GetLevel():GetStage() > LevelStage.STAGE7,
+        not init
     }
 
     return reqs[1] or reqs[2] or reqs[3]
@@ -167,17 +173,24 @@ end
 
 --This callback is called 30 times per second. It will not be called, when its paused (for example on screentransitions or on the pause menu).
 --Base coords are set here, they will be modified by hudoffset on another callback
-function mod:update()
+function mod:updatePosition()
+    self.coordx = 1;
+    self.coordy = 183
     --check for char differences
-    local playerType = Isaac.GetPlayer(0):GetPlayerType()
-    if playerType == PlayerType.PLAYER_BETHANY or playerType == PlayerType.PLAYER_BETHANY_B then 
-        self.coordx = 1;
-        self.coordy = 196;
-    elseif playerType == PlayerType.PLAYER_ESAU or playerType == PlayerType.PLAYER_JACOB then
-        self.coordx = 1;
-        self.coordy = 196;
-    else
-        self.coordx, self.coordy = self:hudoffset(6, 1, 183, "topleft");
+    if self.storage.character == PlayerType.PLAYER_BETHANY or self.storage.character == PlayerType.PLAYER_BETHANY_B then 
+        self.coordy = self.coordy+12;
+    elseif self.storage.character == PlayerType.PLAYER_ESAU or self.storage.character == PlayerType.PLAYER_JACOB then
+        self.coordy = self.coordy+12;
+    end
+    self.coordx, self.coordy = self:hudoffset(6, self.coordx, self.coordy, "topleft");
+end
+
+--checks if char has been changed
+function mod:updateCharCheck()
+    local playertype = Isaac.GetPlayer(0):GetPlayerType()
+    if not (self.storage.character == playertype) then
+        self.storage.character = playertype
+        self:updatePosition();
     end
 end
 
@@ -221,10 +234,8 @@ end
 --init self storage from mod namespace before any callbacks by blocking.
 function mod:initStore()
     self.storage = {} 
-
-    --default hud offset (non-bethany/essau)
-    self.coordx = 21;
-    self.coordy = 197;
+    self.coordx = 1;
+    self.coordy = 183
 end
 mod:initStore();
 
@@ -238,4 +249,4 @@ mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.onRender);
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.test)
 
 --update used to check for a char change (could use clicker? outside of render)
-mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, mod.update)
+mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.updateCharCheck)

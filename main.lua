@@ -173,10 +173,11 @@ function mod:shouldDeHook()
         Game().Difficulty == Difficulty.DIFFICULTY_GREED,
         Game().Difficulty == Difficulty.DIFFICULTY_GREEDIER,
         Game():GetLevel():GetStage() > LevelStage.STAGE7,
-        not self.initialized
+        not self.initialized,
+        Isaac.GetPlayer():HasCollectible(CollectibleType.DADS_NOTE)
     }
 
-    return reqs[1] or reqs[2] or reqs[3] or reqs[4]
+    return reqs[1] or reqs[2] or reqs[3] or reqs[4] or reqs[5]
 end
 
 --This callback is called 30 times per second. It will not be called, when its paused (for example on screentransitions or on the pause menu).

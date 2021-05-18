@@ -49,7 +49,13 @@ function mod:init(continued)
     if not continued then
         self.storage.currentFloorSpawnChance = nil
         self.storage.visited = false
-        mod:RemoveData()
+        --backup the notches
+        if(mod:HasData()) then
+            local tempstorage = json.decode(mod:LoadData())
+            mod:RemoveData()
+            self.storage.notches = tempstorage.notches
+            mod:SaveData(json.encode(self.storage))
+        end
         self:updatePlanetariumChance();
     elseif(mod:HasData()) then
         self.storage = json.decode(mod:LoadData())
@@ -176,7 +182,8 @@ end
 --This callback is called 30 times per second. It will not be called, when its paused (for example on screentransitions or on the pause menu).
 --Base coords are set here, they will be modified by hudoffset on another callback
 --Multi stat display for coop only shows 2 lots of stats
-function mod:updatePosition()
+function mod:updatePosition(notches)
+    notches = notches or self.storage.notches or 11 --default to ingame default of 11
     self.coordx = 1;
     self.coordy = 184;
     --check for char differences (any player is a char with a different offset)
@@ -194,7 +201,7 @@ function mod:updatePosition()
     if #self.storage.character > 1 then
         self.coordy = self.coordy+15;
     end
-    self.coordx, self.coordy = self:hudoffset(9, self.coordx, self.coordy, "topleft");
+    self.coordx, self.coordy = self:hudoffset(notches, self.coordx, self.coordy, "topleft");
 end
 
 --checks if char has been changed
@@ -260,7 +267,23 @@ function log(text)
 end
 
 function mod:test()
-
+    if Input.IsButtonTriggered(Keyboard.KEY_K, 0) and Game():IsPaused() then
+        if not self.storage.notches then
+            self.storage.notches = 11
+        else
+            if self.storage.notches <= 0 then return end
+            self.storage.notches = self.storage.notches -1
+        end
+        self:updatePosition()
+    elseif Input.IsButtonTriggered(Keyboard.KEY_L, 0) and Game():IsPaused() then
+        if not self.storage.notches then
+            self.storage.notches = 11
+        else
+            if self.storage.notches >= 10 then return end
+            self.storage.notches = self.storage.notches +1
+        end
+        self:updatePosition()
+    end
 end
 
 --init self storage from mod namespace before any callbacks by blocking.
@@ -278,7 +301,10 @@ mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.init);
 mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.exit);
 
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.onRender);
-mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.test)
+--mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.test)
 
 --update used to check for a char change (could use clicker? outside of render)
 mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.updateCharCheck)
+
+--keyboard check for HUD scale changes
+mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.test)

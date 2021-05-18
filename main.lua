@@ -166,19 +166,46 @@ function mod:shouldDeHook()
 end
 
 --This callback is called 30 times per second. It will not be called, when its paused (for example on screentransitions or on the pause menu).
+--Base coords are set here, they will be modified by hudoffset on another callback
 function mod:update()
     --check for char differences
     local playerType = Isaac.GetPlayer(0):GetPlayerType()
     if playerType == PlayerType.PLAYER_BETHANY or playerType == PlayerType.PLAYER_BETHANY_B then 
-        self.coordx = 21;
-        self.coordy = 209;
+        self.coordx = 1;
+        self.coordy = 196;
     elseif playerType == PlayerType.PLAYER_ESAU or playerType == PlayerType.PLAYER_JACOB then
-        self.coordx = 21;
-        self.coordy = 209;
+        self.coordx = 1;
+        self.coordy = 196;
     else
-        self.coordx = 21;
-        self.coordy = 197;
+        self.coordx, self.coordy = self:hudoffset(6, 1, 183, "topleft");
     end
+end
+
+--[[
+  @param {int} notches - the number of notches filled in on hud offset (default ingame is between 0-11)
+  @param {float} x - original x coordinate
+  @param {float} y - original y coordinate
+  @param {string} anchor - the anchoring position of the element: "topleft", "topright", "bottomleft", "bottomright" IE. stats are "topleft", minimap is "topright"
+]]
+function mod:hudoffset(notches, x, y, anchor)
+    local xoffset = (notches*2)
+    local yoffset = ((1/8)*(10*notches+(-1)^notches+7))
+    if anchor == "topleft" then
+        xoffset = x+xoffset
+        yoffset = y+yoffset
+    elseif anchor == "topright" then
+        xoffset = x-xoffset
+        yoffset = y+yoffset
+    elseif anchor == "bottomleft" then
+        xoffset = x+xoffset
+        yoffset = y-yoffset
+    elseif anchor == "bottomright" then
+        xoffset = x-xoffset
+        yoffset = y-yoffset
+    else
+        error("invalid anchor provided. Must be one of: \"topleft\", \"topright\", \"bottomleft\", \"bottomright\"", 2)
+    end
+    return xoffset, yoffset
 end
 ---------------------------------------------------------------------------------------------------------
 
@@ -211,4 +238,4 @@ mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.onRender);
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.test)
 
 --update used to check for a char change (could use clicker? outside of render)
-mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.update)
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, mod.update)

@@ -1,7 +1,7 @@
 local json = require("json")
 local mod = RegisterMod("Planetarium Chance", 1)
 
-local init=false;
+mod.initialized=false;
 
 function mod:onRender()
     if mod:shouldDeHook() then return end
@@ -14,13 +14,13 @@ function mod:onRender()
         mod:updatePlanetariumChance();
     end
 
-    self.Font:DrawString(valueOutput, x+16, y, KColor(1,1,1,0.45),0,true)
-    self.HudSprite:Render(Vector(x,y), Vector(0,0), Vector(0,0))
+    self.font:DrawString(valueOutput, x+16, y, KColor(1,1,1,0.45),0,true)
+    self.hudSprite:Render(Vector(x,y), Vector(0,0), Vector(0,0))
 
     --differential popup
-    if self.Fontalpha and self.Fontalpha>0 then
-        local alpha = self.Fontalpha
-        if self.Fontalpha > 0.45 then
+    if self.fontalpha and self.fontalpha>0 then
+        local alpha = self.fontalpha
+        if self.fontalpha > 0.45 then
             alpha = 0.45
         end
         if self.storage.previousFloorSpawnChance == nil then 
@@ -29,11 +29,11 @@ function mod:onRender()
         local difference = self.storage.currentFloorSpawnChance - self.storage.previousFloorSpawnChance;
         local differenceOutput = string.format("%.1f%%", difference)
         if difference>0 then --positive difference
-            self.Font:DrawString("+"..differenceOutput, x+16+self.Font:GetStringWidth(valueOutput)+3, y, KColor(0,1,0,alpha),0,true)
+            self.font:DrawString("+"..differenceOutput, x+16+self.font:GetStringWidth(valueOutput)+3, y, KColor(0,1,0,alpha),0,true)
         elseif difference<0 then --negative difference
-            self.Font:DrawString(differenceOutput, x+16+self.Font:GetStringWidth(valueOutput)+3, y, KColor(1,0,0,alpha),0,true)
+            self.font:DrawString(differenceOutput, x+16+self.font:GetStringWidth(valueOutput)+3, y, KColor(1,0,0,alpha),0,true)
         end
-        self.Fontalpha = self.Fontalpha-0.01
+        self.fontalpha = self.fontalpha-0.01
     end
 end
 
@@ -46,8 +46,6 @@ function mod:exit()
 end
 
 function mod:init(continued)
-    if mod:shouldDeHook() then return end
-
     if not continued then
         self.storage.currentFloorSpawnChance = nil
         self.storage.visited = false
@@ -59,13 +57,16 @@ function mod:init(continued)
 
     --check char
     self:updateCharCheck();
+    self:updatePosition();
 
-    self.HudSprite = Sprite()
-    self.HudSprite:Load("gfx/ui/hudstats2.anm2", true)
-    self.HudSprite.Color = Color(1,1,1,0.45);
-    self.HudSprite:SetFrame("Idle", 8)
-    self.Font = Font();
-    self.Font:Load("font/luaminioutlined.fnt")
+    self.hudSprite = Sprite()
+    self.hudSprite:Load("gfx/ui/hudstats2.anm2", true)
+    self.hudSprite.Color = Color(1,1,1,0.45);
+    self.hudSprite:SetFrame("Idle", 8)
+    self.font = Font();
+    self.font:Load("font/luaminioutlined.fnt")
+
+    self.initialized = true;
 end
 
 -- update on level transition
@@ -122,7 +123,7 @@ function mod:updatePlanetariumChance()
 
     --don't display popup if there is no change
     if self.storage.previousFloorSpawnChance and (self.storage.currentFloorSpawnChance - self.storage.previousFloorSpawnChance ) then
-        self.Fontalpha = 3
+        self.fontalpha = 3
     end
 end
 
@@ -161,35 +162,64 @@ function skippedRooms()
 end
 
 function mod:shouldDeHook()
+
     local reqs = {
         Game().Difficulty == Difficulty.DIFFICULTY_GREED,
         Game().Difficulty == Difficulty.DIFFICULTY_GREEDIER,
         Game():GetLevel():GetStage() > LevelStage.STAGE7,
-        not init
+        not self.initialized
     }
 
-    return reqs[1] or reqs[2] or reqs[3]
+    return reqs[1] or reqs[2] or reqs[3] or reqs[4]
 end
 
 --This callback is called 30 times per second. It will not be called, when its paused (for example on screentransitions or on the pause menu).
 --Base coords are set here, they will be modified by hudoffset on another callback
+--Multi stat display for coop only shows 2 lots of stats
 function mod:updatePosition()
     self.coordx = 1;
-    self.coordy = 183
-    --check for char differences
-    if self.storage.character == PlayerType.PLAYER_BETHANY or self.storage.character == PlayerType.PLAYER_BETHANY_B then 
-        self.coordy = self.coordy+12;
-    elseif self.storage.character == PlayerType.PLAYER_ESAU or self.storage.character == PlayerType.PLAYER_JACOB then
-        self.coordy = self.coordy+12;
+    self.coordy = 184;
+    --check for char differences (any player is a char with a different offset)
+
+    for i = 1, #self.storage.character do
+        if self.storage.character[i] == PlayerType.PLAYER_BETHANY or self.storage.character[i] == PlayerType.PLAYER_BETHANY_B then 
+            self.coordy = self.coordy+12;
+            break;
+        elseif self.storage.character[i] == PlayerType.PLAYER_ESAU or self.storage.character[i] == PlayerType.PLAYER_JACOB then
+            self.coordy = self.coordy+12;
+            break;
+        end
     end
-    self.coordx, self.coordy = self:hudoffset(6, self.coordx, self.coordy, "topleft");
+    --two sets of stats are displayed on multiplayer
+    if #self.storage.character > 1 then
+        self.coordy = self.coordy+15;
+    end
+    self.coordx, self.coordy = self:hudoffset(9, self.coordx, self.coordy, "topleft");
 end
 
 --checks if char has been changed
 function mod:updateCharCheck()
-    local playertype = Isaac.GetPlayer(0):GetPlayerType()
-    if not (self.storage.character == playertype) then
-        self.storage.character = playertype
+    local updatePos = false;
+    if self.storage.character == nil or self.storage.character == 0 then self.storage.character = {} end
+
+    local activePlayers = Game():GetNumPlayers()
+    for p = 1, activePlayers do
+        local playertype = Isaac.GetPlayer(p-1):GetPlayerType();
+        if not (self.storage.character[p] == playertype) then
+            self.storage.character[p] = playertype
+            updatePos = true;
+        end
+    end
+
+    local missingPlayers = 4 - activePlayers
+
+    for p=1, missingPlayers do
+        if(self.storage.character[activePlayers+p]) then
+            table.remove(self.storage.character, activePlayers+p)
+        end
+    end
+
+    if updatePos then
         self:updatePosition();
     end
 end
@@ -218,6 +248,8 @@ function mod:hudoffset(notches, x, y, anchor)
     else
         error("invalid anchor provided. Must be one of: \"topleft\", \"topright\", \"bottomleft\", \"bottomright\"", 2)
     end
+    -- log(xoffset)
+    -- log(yoffset)
     return xoffset, yoffset
 end
 ---------------------------------------------------------------------------------------------------------
@@ -234,8 +266,8 @@ end
 --init self storage from mod namespace before any callbacks by blocking.
 function mod:initStore()
     self.storage = {} 
-    self.coordx = 1;
-    self.coordy = 183
+    self.coordx = 21;
+    self.coordy = 197.5
 end
 mod:initStore();
 

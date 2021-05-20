@@ -5,8 +5,6 @@ mod.initialized=false;
 
 function mod:onRender()
     if mod:shouldDeHook() then return end
-    x = self.coordx; 
-    y = self.coordy;
     local valueOutput = string.format("%.1s%%", "?")
     if self.storage.currentFloorSpawnChance then
         valueOutput = string.format("%.1f%%", self.storage.currentFloorSpawnChance)
@@ -14,8 +12,8 @@ function mod:onRender()
         mod:updatePlanetariumChance();
     end
 
-    self.font:DrawString(valueOutput, x+16, y, KColor(1,1,1,0.45),0,true)
-    self.hudSprite:Render(Vector(x,y), Vector(0,0), Vector(0,0))
+    self.font:DrawString(valueOutput, self.coords.X+16, self.coords.Y, KColor(1,1,1,0.45),0,true)
+    self.hudSprite:Render(self.coords, Vector(0,0), Vector(0,0))
 
     --differential popup
     if self.fontalpha and self.fontalpha>0 then
@@ -29,9 +27,9 @@ function mod:onRender()
         local difference = self.storage.currentFloorSpawnChance - self.storage.previousFloorSpawnChance;
         local differenceOutput = string.format("%.1f%%", difference)
         if difference>0 then --positive difference
-            self.font:DrawString("+"..differenceOutput, x+16+self.font:GetStringWidth(valueOutput)+3, y, KColor(0,1,0,alpha),0,true)
+            self.font:DrawString("+"..differenceOutput, self.coords.X+16+self.font:GetStringWidth(valueOutput)+3, self.coords.Y, KColor(0,1,0,alpha),0,true)
         elseif difference<0 then --negative difference
-            self.font:DrawString(differenceOutput, x+16+self.font:GetStringWidth(valueOutput)+3, y, KColor(1,0,0,alpha),0,true)
+            self.font:DrawString(differenceOutput, self.coords.X+16+self.font:GetStringWidth(valueOutput)+3, self.coords.Y, KColor(1,0,0,alpha),0,true)
         end
         self.fontalpha = self.fontalpha-0.01
     end
@@ -189,8 +187,7 @@ end
 --Multi stat display for coop only shows 2 lots of stats
 function mod:updatePosition(notches)
     notches = notches or self.storage.notches or 11 --default to ingame default of 11
-    self.coordx = 1;
-    self.coordy = 184;
+    self.coords = Vector(1, 184)
     --check for char differences (any player is a char with a different offset)
 
     for i = 1, #self.storage.character do
@@ -211,7 +208,7 @@ function mod:updatePosition(notches)
         self.coordy = self.coordy-10;
     end
 
-    self.coordx, self.coordy = self:hudoffset(notches, self.coordx, self.coordy, "topleft");
+    self.coords = self:hudoffset(notches, self.coords, "topleft");
 end
 
 --checks if char has been changed
@@ -246,31 +243,31 @@ end
 
 --[[
   @param {int} notches - the number of notches filled in on hud offset (default ingame is between 0-11)
-  @param {float} x - original x coordinate
+  @param {Vector} vector - original vector coordinates
   @param {float} y - original y coordinate
   @param {string} anchor - the anchoring position of the element: "topleft", "topright", "bottomleft", "bottomright" IE. stats are "topleft", minimap is "topright"
 ]]
-function mod:hudoffset(notches, x, y, anchor)
+function mod:hudoffset(notches, vector, anchor)
     local xoffset = (notches*2)
     local yoffset = ((1/8)*(10*notches+(-1)^notches+7))
     if anchor == "topleft" then
-        xoffset = x+xoffset
-        yoffset = y+yoffset
+        xoffset = vector.X+xoffset
+        yoffset = vector.Y+yoffset
     elseif anchor == "topright" then
-        xoffset = x-xoffset
-        yoffset = y+yoffset
+        xoffset = vector.X-xoffset
+        yoffset = vector.Y+yoffset
     elseif anchor == "bottomleft" then
-        xoffset = x+xoffset
-        yoffset = y-yoffset
+        xoffset = vector.X+xoffset
+        yoffset = vector.Y-yoffset
     elseif anchor == "bottomright" then
-        xoffset = x-xoffset
-        yoffset = y-yoffset
+        xoffset = vector.X-xoffset
+        yoffset = vector.Y-yoffset
     else
         error("invalid anchor provided. Must be one of: \"topleft\", \"topright\", \"bottomleft\", \"bottomright\"", 2)
     end
     -- log(xoffset)
     -- log(yoffset)
-    return xoffset, yoffset
+    return Vector(xoffset, yoffset);
 end
 ---------------------------------------------------------------------------------------------------------
 
@@ -302,8 +299,7 @@ end
 --init self storage from mod namespace before any callbacks by blocking.
 function mod:initStore()
     self.storage = {} 
-    self.coordx = 21;
-    self.coordy = 197.5
+    self.coords = Vector(21, 197.5)
 end
 mod:initStore();
 

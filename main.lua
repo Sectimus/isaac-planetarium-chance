@@ -5,14 +5,15 @@ mod.initialized=false;
 
 function mod:onRender()
     if mod:shouldDeHook() then return end
+    --account for screenshake offset
+    local textCoords = self.coords+Game().ScreenShakeOffset;
     local valueOutput = string.format("%.1s%%", "?")
     if self.storage.currentFloorSpawnChance then
         valueOutput = string.format("%.1f%%", self.storage.currentFloorSpawnChance)
     else
         mod:updatePlanetariumChance();
     end
-
-    self.font:DrawString(valueOutput, self.coords.X+16, self.coords.Y, KColor(1,1,1,0.45),0,true)
+    self.font:DrawString(valueOutput, textCoords.X+16, textCoords.Y, KColor(1,1,1,0.45),0,true)
     self.hudSprite:Render(self.coords, Vector(0,0), Vector(0,0))
 
     --differential popup
@@ -27,9 +28,9 @@ function mod:onRender()
         local difference = self.storage.currentFloorSpawnChance - self.storage.previousFloorSpawnChance;
         local differenceOutput = string.format("%.1f%%", difference)
         if difference>0 then --positive difference
-            self.font:DrawString("+"..differenceOutput, self.coords.X+16+self.font:GetStringWidth(valueOutput)+3, self.coords.Y, KColor(0,1,0,alpha),0,true)
+            self.font:DrawString("+"..differenceOutput, textCoords.X+16+self.font:GetStringWidth(valueOutput)+3, textCoords.Y, KColor(0,1,0,alpha),0,true)
         elseif difference<0 then --negative difference
-            self.font:DrawString(differenceOutput, self.coords.X+16+self.font:GetStringWidth(valueOutput)+3, self.coords.Y, KColor(1,0,0,alpha),0,true)
+            self.font:DrawString(differenceOutput, textCoords.X+16+self.font:GetStringWidth(valueOutput)+3, textCoords.Y, KColor(1,0,0,alpha),0,true)
         end
         self.fontalpha = self.fontalpha-0.01
     end

@@ -189,7 +189,7 @@ end
 --Base coords are set here, they will be modified by hudoffset on another callback
 --Multi stat display for coop only shows 2 lots of stats
 function mod:updatePosition(notches)
-    notches = notches or self.storage.notches or 11 --default to ingame default of 11
+    notches = notches or self.storage.notches or 10 --default to ingame default of 11
     self.coords = Vector(1, 184)
     --check for char differences (any player is a char with a different offset)
 
@@ -282,7 +282,7 @@ end
 function mod:keyboardCheck()
     if Input.IsButtonTriggered(Keyboard.KEY_K, 0) and not Game():IsPaused() then
         if not self.storage.notches then
-            self.storage.notches = 11
+            self.storage.notches = 10
         else
             if self.storage.notches <= 0 then return end
             self.storage.notches = self.storage.notches -1
@@ -290,7 +290,7 @@ function mod:keyboardCheck()
         self:updatePosition()
     elseif Input.IsButtonTriggered(Keyboard.KEY_L, 0) and not Game():IsPaused() then
         if not self.storage.notches then
-            self.storage.notches = 11
+            self.storage.notches = 10
         else
             if self.storage.notches >= 10 then return end
             self.storage.notches = self.storage.notches +1

@@ -280,7 +280,7 @@ function log(text)
 end
 
 function mod:keyboardCheck()
-    if Input.IsButtonTriggered(Keyboard.KEY_K, 0) and Game():IsPaused() then
+    if Input.IsButtonTriggered(Keyboard.KEY_K, 0) and not Game():IsPaused() then
         if not self.storage.notches then
             self.storage.notches = 11
         else
@@ -288,7 +288,7 @@ function mod:keyboardCheck()
             self.storage.notches = self.storage.notches -1
         end
         self:updatePosition()
-    elseif Input.IsButtonTriggered(Keyboard.KEY_L, 0) and Game():IsPaused() then
+    elseif Input.IsButtonTriggered(Keyboard.KEY_L, 0) and not Game():IsPaused() then
         if not self.storage.notches then
             self.storage.notches = 11
         else

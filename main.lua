@@ -195,20 +195,20 @@ function mod:updatePosition(notches)
 
     for i = 1, #self.storage.character do
         if self.storage.character[i] == PlayerType.PLAYER_BETHANY or self.storage.character[i] == PlayerType.PLAYER_BETHANY_B then 
-            self.coordy = self.coordy+12;
+            self.coords = self.coords + Vector(0, 12)
             break;
         elseif self.storage.character[i] == PlayerType.PLAYER_ESAU or self.storage.character[i] == PlayerType.PLAYER_JACOB then
-            self.coordy = self.coordy+12;
+            self.coords = self.coords + Vector(0, 12)
             break;
         end
     end
     --two sets of stats are displayed on multiplayer
     if #self.storage.character > 1 then
-        self.coordy = self.coordy+15;
+        self.coords = self.coords + Vector(0, 15)
     end
 
     if Isaac.GetPlayer():HasCollectible(CollectibleType.COLLECTIBLE_DUALITY) then
-        self.coordy = self.coordy-10;
+        self.coords = self.coords + Vector(0, -10)
     end
 
     self.coords = self:hudoffset(notches, self.coords, "topleft");
@@ -216,6 +216,8 @@ end
 
 --checks if char has been changed
 function mod:updateCheck()
+    log("HEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEERE")
+
     local updatePos = false;
     if self.storage.character == nil or self.storage.character == 0 then self.storage.character = {} end
 
@@ -236,8 +238,18 @@ function mod:updateCheck()
         end
     end
 
+
     --duality can move the icon
-    if(Isaac.GetPlayer():HasCollectible(CollectibleType.COLLECTIBLE_DUALITY)) then updatePos = true; end
+    if(Isaac.GetPlayer():HasCollectible(CollectibleType.COLLECTIBLE_DUALITY)) then
+        log("HASSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSIT")
+        self.storage.hadDuality = true
+        updatePos = true;
+    elseif self.storage.hadDuality then
+    log("no HASSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSIT")
+
+        updatePos = true;
+        self.storage.hadDuality = false
+    end
 
     if updatePos then
         self:updatePosition();
@@ -280,7 +292,7 @@ function log(text)
 end
 
 function mod:keyboardCheck()
-    if Input.IsButtonTriggered(Keyboard.Key_J, 0) and not Game():IsPaused() then
+    if Input.IsButtonTriggered(Keyboard.KEY_J, 0) and not Game():IsPaused() then
         if not self.storage.notches then
             self.storage.notches = 10
         else

@@ -120,10 +120,10 @@ function mod:updatePlanetariumChance()
 
         --visited already
         if self.storage.visited then
-            self.storage.currentFloorSpawnChance = 1
+            self.storage.currentFloorSpawnChance = 0.01
             if Isaac.GetPlayer():HasTrinket(TrinketType.TRINKET_TELESCOPE_LENS) then
                 --If Isaac enters a Planetarium, the chance will be set to 1% and can be increased only with a Telescope Lens, by 15%.
-                self.storage.currentFloorSpawnChance = 15
+                self.storage.currentFloorSpawnChance = 0.15
             end
         end
 

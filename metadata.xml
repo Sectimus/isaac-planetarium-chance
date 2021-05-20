@@ -22,7 +22,6 @@ Bear in mind 99.9% doesn't guarantee a spawn: "Note that the bonuses are additiv
 Have any ideas? Found a bug? visit the mod repository @ https://github.com/Sectimus/isaac-planetarium-chance
 
 ⦿*I am aware of the issue of the icon showing during boss animations, a fix is currently in progress.*
-⦿*The display currently shows on challenges runs, even when no planetarium can be entered.*
 ⦿*Currently investigating issues with Tainted J&E and Tainted Bethany*
 ⦿*Currently investigating issues hud offset triggering when using the debug menu*
 </description>

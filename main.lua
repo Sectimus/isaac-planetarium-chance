@@ -82,28 +82,41 @@ function mod:updatePlanetariumChance()
     local game = Game();
     local level = game:GetLevel();
     local stage = level:GetStage();
+    
+    self.storage.currentFloorSpawnChance = 0.01; 
+    local stage = Game():GetLevel():GetStage(); 
+    local variant = Game():GetLevel():GetStageType(); 
+    if(variant == StageType.STAGETYPE_REPENTANCE or variant == StageType.STAGETYPE_REPENTANCE_B) then stage = stage+1 end 
+    local treasurerooms_visited = Game():GetTreasureRoomVisitCount(); 
+    
     --Planetariums can also not normally be encountered after Depths II, though Telescope Lens allows them to appear in  Womb and  Corpse.
     if (stage <= LevelStage.STAGE3_2) or (stage > LevelStage.STAGE3_2 and stage < LevelStage.STAGE5 and Isaac.GetPlayer():HasTrinket(TrinketType.TRINKET_TELESCOPE_LENS)) then --Before Womb or Between Womb/Utero with Telescope Lens
-        local treasureSkips = skippedRooms();
-        -- log("----")
-        -- log(stage)
-        -- log(treasureSkips)
-        -- log("----")
-        self.storage.currentFloorSpawnChance = 1+(100*(0.2 * treasureSkips)); --chance before items
+        local rooms = Game():GetLevel():GetRooms(); 
+        for i = 0, #rooms-1 do 
+            if rooms:Get(i).Data.Type == RoomType.ROOM_TREASURE then 
+                if rooms:Get(i).VisitedCount > 0 then 
+                    treasurerooms_visited = treasurerooms_visited -1 
+                end 
+            end 
+        end 
+
+        if(stage - treasurerooms_visited - 1 > 0) then 
+            self.storage.currentFloorSpawnChance = self.storage.currentFloorSpawnChance + (0.20 * (stage - treasurerooms_visited - 1)); 
+        end
 
         --items
-        if Isaac.GetPlayer():HasTrinket(TrinketType.TRINKET_TELESCOPE_LENS) then
-            self.storage.currentFloorSpawnChance = self.storage.currentFloorSpawnChance + 9;
-        end
-        if Isaac.GetPlayer():HasCollectible(CollectibleType.COLLECTIBLE_MAGIC_8_BALL) then
-            self.storage.currentFloorSpawnChance = self.storage.currentFloorSpawnChance + 15;
-        end
-        if Isaac.GetPlayer():HasCollectible(CollectibleType.COLLECTIBLE_CRYSTAL_BALL) then
-            self.storage.currentFloorSpawnChance = self.storage.currentFloorSpawnChance + 15;
-            if treasureSkips > 0 then --The Crystal Ball bonus is 100% if a Treasure Room has been skipped
-                self.storage.currentFloorSpawnChance = 100;
-            end
-        end
+        if Isaac.GetPlayer():HasTrinket(TrinketType.TRINKET_TELESCOPE_LENS) then 
+            self.storage.currentFloorSpawnChance = self.storage.currentFloorSpawnChance + 0.09; 
+        end 
+        if Isaac.GetPlayer():HasCollectible(CollectibleType.COLLECTIBLE_MAGIC_8_BALL) then 
+            self.storage.currentFloorSpawnChance = self.storage.currentFloorSpawnChance + 0.15; 
+        end 
+        if Isaac.GetPlayer():HasCollectible(CollectibleType.COLLECTIBLE_CRYSTAL_BALL) then 
+            self.storage.currentFloorSpawnChance = self.storage.currentFloorSpawnChance + 0.15; 
+            if stage - treasurerooms_visited - 1 > 0 then 
+                self.storage.currentFloorSpawnChance = 1; 
+            end 
+        end 
 
         --visited already
         if self.storage.visited then
@@ -120,11 +133,14 @@ function mod:updatePlanetariumChance()
     end
 
     --Planetarium chance can never be more than 100%. (technically 99.9% as there is never a 100% guarantee)
-    if self.storage.currentFloorSpawnChance>99.9 then
-        self.storage.currentFloorSpawnChance = 99.9;
+    if self.storage.currentFloorSpawnChance>0.999 then
+        self.storage.currentFloorSpawnChance = 0.999;
     elseif self.storage.currentFloorSpawnChance<0 then 
         self.storage.currentFloorSpawnChance = 0;
     end
+
+    --make absolute
+    self.storage.currentFloorSpawnChance = self.storage.currentFloorSpawnChance * 100
 
     --don't display popup if there is no change
     if self.storage.previousFloorSpawnChance and (self.storage.currentFloorSpawnChance - self.storage.previousFloorSpawnChance ) then
@@ -138,36 +154,6 @@ function mod:checkForPlanetarium()
     if(room:GetType() == RoomType.ROOM_PLANETARIUM) then
         self.storage.visited = true;
     end
-end
-
--- Returns the amount of skipped treasure rooms (does not count the current floor room if it has not been entered yet)
-function skippedRooms()
-    if mod:shouldDeHook() then return end
-    local skippedTreasure = 0;
-    local game = Game();
-    local level = game:GetLevel();
-    local treasurerooms_visited = game:GetTreasureRoomVisitCount();
-    local stage = level:GetStage();
-    --check for stagetype of C or D
-    local variant = Game():GetLevel():GetStageType();
-    if variant == 3 or variant == 4 then stage = stage+1 end
-
-
-    --Gotta handle those XL floors somehow!!! >:(
-    if(level:GetCurses() == LevelCurse.CURSE_OF_LABYRINTH) then stage = stage+1 end
-
-    skippedTreasure = stage - treasurerooms_visited;
-
-    local rooms = level:GetRooms();
-    for i = 0, #rooms-1 do
-        if rooms:Get(i).Data.Type == RoomType.ROOM_TREASURE then
-            if rooms:Get(i).VisitedCount == 0 then
-                --Room was NOT entered on this floor YET
-                skippedTreasure = skippedTreasure -1
-            end
-        end
-    end
-    return skippedTreasure;
 end
 
 function mod:shouldDeHook()
@@ -216,8 +202,6 @@ end
 
 --checks if char has been changed
 function mod:updateCheck()
-    log("HEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEERE")
-
     local updatePos = false;
     if self.storage.character == nil or self.storage.character == 0 then self.storage.character = {} end
 
@@ -241,11 +225,9 @@ function mod:updateCheck()
 
     --duality can move the icon
     if(Isaac.GetPlayer():HasCollectible(CollectibleType.COLLECTIBLE_DUALITY)) then
-        log("HASSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSIT")
         self.storage.hadDuality = true
         updatePos = true;
     elseif self.storage.hadDuality then
-    log("no HASSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSIT")
 
         updatePos = true;
         self.storage.hadDuality = false

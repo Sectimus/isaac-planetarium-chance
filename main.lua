@@ -149,6 +149,10 @@ function skippedRooms()
     local level = game:GetLevel();
     local treasurerooms_visited = game:GetTreasureRoomVisitCount();
     local stage = level:GetStage();
+    --check for stagetype of C or D
+    local variant = Game():GetLevel():GetStageType();
+    if variant == 3 or variant == 4 then stage = stage+1 end
+
 
     --Gotta handle those XL floors somehow!!! >:(
     if(level:GetCurses() == LevelCurse.CURSE_OF_LABYRINTH) then stage = stage+1 end
@@ -275,7 +279,7 @@ function log(text)
     Isaac.DebugString(tostring(text))
 end
 
-function mod:test()
+function mod:keyboardCheck()
     if Input.IsButtonTriggered(Keyboard.KEY_K, 0) and Game():IsPaused() then
         if not self.storage.notches then
             self.storage.notches = 11
@@ -316,4 +320,4 @@ mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.onRender);
 mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.updateCheck)
 
 --keyboard check for HUD scale changes
-mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.test)
+mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.keyboardCheck)

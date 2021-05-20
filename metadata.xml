@@ -7,9 +7,10 @@
 
 [hr][/hr]
 
-[h1]Conguring the HUD offset:[/h1]
-[b][u]If you use an alternative HUD offset than the one provided by default in the options menu, pause your game by pressing "ESC" - whilst you are in the pause menu, press "k" or "l" respectively to decrease / increase the hud offset for the planetarium icon.[/u][/b]
+[h1]Configuring the HUD offset:[/h1]
+[b][u]If you use an alternative HUD offset than the one provided by default in the options menu, pause your game by pressing "ESC" - whilst you are in the pause menu, press "K" or "L" respectively to decrease / increase the hud offset for the planetarium icon.[/u][/b]
 This is due to a limitation in the modding API, where mods cannot read the options.ini file or access any variable that contains the in-game HUD offset value.
+
 [hr][/hr]
 
 Make sure you have the requirements unlocked to be able to actually see the planetarium.
@@ -20,9 +21,12 @@ Bear in mind 99.9% doesn't guarantee a spawn: "Note that the bonuses are additiv
 
 Have any ideas? Found a bug? visit the mod repository @ https://github.com/Sectimus/isaac-planetarium-chance
 
-⦿*There are some reports of the display not working in alt path. A fix is arriving in the next update (when I unlock alt-path!)*
+⦿*I am aware of the issue of the icon showing during boss animations, a fix is currently in progress.*
+⦿*The display currently shows on challenges runs, even when no planetarium can be entered.*
+⦿*Currently investigating issues with Tainted J&E and Tainted Bethany*
+⦿*Currently investigating issues hud offset triggering when using the debug menu*
 </description>
-    <version>1.4</version>
+    <version>1.5</version>
     <visibility>Public</visibility>
     <tag id="Lua"/>
     <tag id="Tweaks"/>

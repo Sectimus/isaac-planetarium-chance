@@ -195,14 +195,12 @@ function mod:updatePosition(notches)
     end
     --two sets of stats are displayed on multiplayer
     if #self.storage.character > 1 then
-        log("EXTRA PLAYRR")
         self.coords = self.coords + Vector(0, 15)
     end
 
     if Isaac.GetPlayer():HasCollectible(CollectibleType.COLLECTIBLE_DUALITY) then
         self.coords = self.coords + Vector(0, -10)
     end
-    log(self.coords)
 
     self.coords = self:hudoffset(notches, self.coords, "topleft");
 end

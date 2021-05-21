@@ -180,22 +180,29 @@ function mod:updatePosition(notches)
     --check for char differences (any player is a char with a different offset)
 
     for i = 1, #self.storage.character do
-        if self.storage.character[i] == PlayerType.PLAYER_BETHANY or self.storage.character[i] == PlayerType.PLAYER_BETHANY_B then 
+        --TODO when devs fix tainted bethany positioning, then update with tainted bethany here
+        if self.storage.character[i] == PlayerType.PLAYER_BETHANY then 
             self.coords = self.coords + Vector(0, 12)
             break;
-        elseif self.storage.character[i] == PlayerType.PLAYER_ESAU or self.storage.character[i] == PlayerType.PLAYER_JACOB then
+        elseif self.storage.character[i] == PlayerType.PLAYER_THESOUL_B then 
+            table.remove(self.storage.character, i)
+            break;
+        --TODO when devs fix jacob &esau positioning, then update with jacob &esau here
+        elseif false then
             self.coords = self.coords + Vector(0, 12)
             break;
         end
     end
     --two sets of stats are displayed on multiplayer
     if #self.storage.character > 1 then
+        log("EXTRA PLAYRR")
         self.coords = self.coords + Vector(0, 15)
     end
 
     if Isaac.GetPlayer():HasCollectible(CollectibleType.COLLECTIBLE_DUALITY) then
         self.coords = self.coords + Vector(0, -10)
     end
+    log(self.coords)
 
     self.coords = self:hudoffset(notches, self.coords, "topleft");
 end

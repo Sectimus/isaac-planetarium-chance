@@ -86,11 +86,11 @@ function mod:updatePlanetariumChance()
     self.storage.currentFloorSpawnChance = 0.01; 
     local stage = Game():GetLevel():GetStage(); 
     local variant = Game():GetLevel():GetStageType(); 
-    if(variant == StageType.STAGETYPE_REPENTANCE or variant == StageType.STAGETYPE_REPENTANCE_B) then stage = stage+1 end 
     local treasurerooms_visited = Game():GetTreasureRoomVisitCount(); 
     
     --Planetariums can also not normally be encountered after Depths II, though Telescope Lens allows them to appear in  Womb and  Corpse.
     if (stage <= LevelStage.STAGE3_2) or (stage > LevelStage.STAGE3_2 and stage < LevelStage.STAGE5 and Isaac.GetPlayer():HasTrinket(TrinketType.TRINKET_TELESCOPE_LENS)) then --Before Womb or Between Womb/Utero with Telescope Lens
+        if(variant == StageType.STAGETYPE_REPENTANCE or variant == StageType.STAGETYPE_REPENTANCE_B) then stage = stage+1 end 
         local rooms = Game():GetLevel():GetRooms(); 
         for i = 0, #rooms-1 do 
             if rooms:Get(i).Data.Type == RoomType.ROOM_TREASURE then 
@@ -99,6 +99,7 @@ function mod:updatePlanetariumChance()
                 end 
             end 
         end 
+
 
         if(stage - treasurerooms_visited - 1 > 0) then 
             self.storage.currentFloorSpawnChance = self.storage.currentFloorSpawnChance + (0.20 * (stage - treasurerooms_visited - 1)); 

@@ -23,11 +23,11 @@ Bear in mind 99.9% doesn't guarantee a spawn: "Note that the bonuses are additiv
 
 Have any ideas? Found a bug? visit the mod repository @ https://github.com/Sectimus/isaac-planetarium-chance
 
-⦿*Currently investigating issues with Tainted Forgotten*
 ⦿*co-op past 2 players may not be display correctly.*
 ⦿*Mod config menu support coming soon!*
+⦿*Colours may be slightly off, if anyone wants to provide the source values (as well as opacacy) please submit a pull request.*
 </description>
-    <version>2.0</version>
+    <version>2.2</version>
     <visibility>Public</visibility>
     <tag id="Lua"/>
     <tag id="Tweaks"/>

@@ -213,6 +213,14 @@ function mod:updateCheck()
 
     local activePlayers = Game():GetNumPlayers()
     for p = 1, activePlayers do
+        --remove babies as they do not have stats. 
+        local isBaby = Game():GetPlayer(p):GetBabySkin() ~= -1
+        if isBaby then
+            activePlayers = activePlayers-1
+        end
+    end
+
+    for p = 1, activePlayers do
         local playertype = Isaac.GetPlayer(p-1):GetPlayerType();
         if not (self.storage.character[p] == playertype) then
             self.storage.character[p] = playertype

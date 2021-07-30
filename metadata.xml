@@ -5,13 +5,19 @@
     <id>2489006943</id>
     <description>Displays the chance of a planetarium being present (on the current floor) in the HUD. Takes into account all items, collectibles and modifiers.
 
+[b][u]----------READ THE DESCRIPTION BEFORE COMMENTING!!!----------[/u][/b]
+
 [i]items that affect the chance of a planetarium spawn will not show until you enter the next floor, as your current floor layout will not change.[/i]
 
 [hr][/hr]
 
 [h1]Configuring the HUD offset:[/h1]
-[b][u]If you use an alternative HUD offset than the one provided by default in the options menu, press [u]"shift+J" or "shift+K"[/u] respectively to decrease / increase the hud offset for the planetarium icon. (Your game must not be paused in any way)[/u][/b]
-This is due to a limitation in the modding API, where mods cannot read the options.ini file or access any variable that contains the in-game HUD offset value.
+
+    1: Start a run
+    2: [u]Do not[/u] have your game paused in any way (debug menu / pause screen etc.)
+    3: Press "[b]shift+J[/b]" or "[b]shift+K[/b]" to decrease / increase the hud offset
+
+This is due to a limitation in the modding API, where mods cannot read the options.ini file or access any variable that contains the in-game HUD offset value. An integration with mod config menu will be coming soon™
 
 [hr][/hr]
 
@@ -21,14 +27,14 @@ Bear in mind 99.9% doesn't guarantee a spawn: "Note that the bonuses are additiv
 
 [hr][/hr]
 
-Have any ideas? Found a bug? visit the mod repository @ https://github.com/Sectimus/isaac-planetarium-chance
+Have any ideas? Found a bug? visit the mod repository @ https://github.com/Sectimus/isaac-planetarium-chance/issues
 
 ⦿*co-op past 2 players may not be display correctly.*
 ⦿*Mod config menu support coming soon!*
 ⦿*Colours may be slightly off, if anyone wants to provide the source values (as well as opacacy) please submit a pull request.*
 ⦿*R-Key item may show an incorrect number when used*
 </description>
-    <version>2.3</version>
+    <version>2.4</version>
     <visibility>Public</visibility>
     <tag id="Lua"/>
     <tag id="Tweaks"/>

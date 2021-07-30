@@ -53,11 +53,17 @@ function mod:init(continued)
             local tempstorage = json.decode(mod:LoadData())
             mod:RemoveData()
             self.storage.notches = tempstorage.notches
+            if(self.storage.notches < 0 or self.storage.notches > 10) then
+                self.storage.notches = 10;
+            end
             mod:SaveData(json.encode(self.storage))
         end
         self:updatePlanetariumChance();
     elseif(mod:HasData()) then
         self.storage = json.decode(mod:LoadData())
+        if(self.storage.notches < 0 or self.storage.notches > 10) then
+            self.storage.notches = 10;
+        end
     end
 
     --check char

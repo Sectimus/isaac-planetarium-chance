@@ -34,7 +34,7 @@ Have any ideas? Found a bug? visit the mod repository @ https://github.com/Secti
 ⦿*Colours may be slightly off, if anyone wants to provide the source values (as well as opacacy) please submit a pull request.*
 ⦿*R-Key item may show an incorrect number when used*
 </description>
-    <version>2.4</version>
+    <version>2.5</version>
     <visibility>Public</visibility>
     <tag id="Lua"/>
     <tag id="Tweaks"/>

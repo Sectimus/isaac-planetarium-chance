@@ -75,6 +75,7 @@ function mod:updateNotches(n)
         end
     elseif type(n) == "number" and math.floor(n) == n then
         self.storage.notches = clean(n)
+        self:updatePosition()
     end
 
     -- if ModConfigMenu then

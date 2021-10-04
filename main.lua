@@ -44,6 +44,45 @@ function mod:exit()
     --TODO cleanup sprite
 end
 
+--update the notch value in storage (and mod menu) after validation
+--n = a string defining "+" for increment or "-" for decrement or an int for a set value.
+function mod:updateNotches(n)
+
+    --cleans the value to the bounds of the notches
+    function clean(n)
+        if n > 10 then n = 10
+        elseif n < 0 then n = 0 end
+
+        return n
+    end
+
+    if type(n) == "string" and utf8.len(n) == 1 then
+        --check for char type
+        if string.match(n, "%+") then
+            if self.storage.notches then
+                self.storage.notches = clean(self.storage.notches + 1)
+                self:updatePosition()
+            else
+                self.storage.notches = clean(10)
+            end
+        elseif string.match(n, "%-") then
+            if self.storage.notches then
+                self.storage.notches = clean(self.storage.notches - 1)
+                self:updatePosition()
+            else
+                self.storage.notches = clean(10)
+            end
+        end
+    elseif type(n) == "number" and math.floor(n) == n then
+        self.storage.notches = clean(n)
+        self:updatePosition()
+    end
+
+    -- if ModConfigMenu then
+    --     --self.storage.notches = ModConfigMenu.Config.General.HudOffset
+    -- end
+end
+
 function mod:init(continued)
     if not continued then
         self.storage.currentFloorSpawnChance = nil
@@ -286,33 +325,26 @@ function mod:hudoffset(notches, vector, anchor)
     -- log(yoffset)
     return Vector(xoffset, yoffset);
 end
+
+function mod:keyboardCheck()
+    if (Input.IsButtonPressed(Keyboard.KEY_LEFT_SHIFT, 0) or Input.IsButtonPressed(Keyboard.KEY_RIGHT_SHIFT, 0)) and not Game():IsPaused() then
+        if Input.IsButtonTriggered(Keyboard.KEY_J, 0) and not Game():IsPaused() then
+            self:updateNotches("-")
+        elseif Input.IsButtonTriggered(Keyboard.KEY_K, 0) and not Game():IsPaused() then
+            self:updateNotches("+")
+        end
+    end
+end
+
+function mod:MCMHudUpdate(_, hudOffset)
+    self:updateNotches(hudOffset)
+end
+
 ---------------------------------------------------------------------------------------------------------
 
 -- Custom Log Command
 function log(text)
     Isaac.DebugString(tostring(text))
-end
-
-function mod:keyboardCheck()
-    if (Input.IsButtonPressed(Keyboard.KEY_LEFT_SHIFT, 0) or Input.IsButtonPressed(Keyboard.KEY_RIGHT_SHIFT, 0)) and not Game():IsPaused() then
-        if Input.IsButtonTriggered(Keyboard.KEY_J, 0) and not Game():IsPaused() then
-            if not self.storage.notches then
-                self.storage.notches = 10
-            else
-                if self.storage.notches <= 0 then return end
-                self.storage.notches = self.storage.notches -1
-            end
-            self:updatePosition()
-        elseif Input.IsButtonTriggered(Keyboard.KEY_K, 0) and not Game():IsPaused() then
-            if not self.storage.notches then
-                self.storage.notches = 10
-            else
-                if self.storage.notches >= 10 then return end
-                self.storage.notches = self.storage.notches +1
-            end
-            self:updatePosition()
-        end
-    end
 end
 
 --init self storage from mod namespace before any callbacks by blocking.
@@ -336,3 +368,9 @@ mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.updateCheck)
 
 --keyboard check for HUD scale changes
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.keyboardCheck)
+
+--custom callback for ModConfigMenu support
+if ModConfigMenu and CustomCallbackHelper then
+    CustomCallbackHelper.AddCallback(mod, CustomCallbacks.MCM_POST_MODIFY_SETTING, mod.MCMHudUpdate, "General", "HudOffset")
+end
+

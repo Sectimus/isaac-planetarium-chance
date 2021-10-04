@@ -325,12 +325,6 @@ function mod:hudoffset(notches, vector, anchor)
     -- log(yoffset)
     return Vector(xoffset, yoffset);
 end
----------------------------------------------------------------------------------------------------------
-
--- Custom Log Command
-function log(text)
-    Isaac.DebugString(tostring(text))
-end
 
 function mod:keyboardCheck()
     if (Input.IsButtonPressed(Keyboard.KEY_LEFT_SHIFT, 0) or Input.IsButtonPressed(Keyboard.KEY_RIGHT_SHIFT, 0)) and not Game():IsPaused() then
@@ -340,6 +334,17 @@ function mod:keyboardCheck()
             self:updateNotches("+")
         end
     end
+end
+
+function mod:MCMHudUpdate(_, hudOffset)
+    self:updateNotches(hudOffset)
+end
+
+---------------------------------------------------------------------------------------------------------
+
+-- Custom Log Command
+function log(text)
+    Isaac.DebugString(tostring(text))
 end
 
 --init self storage from mod namespace before any callbacks by blocking.
@@ -363,3 +368,9 @@ mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.updateCheck)
 
 --keyboard check for HUD scale changes
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.keyboardCheck)
+
+--custom callback for ModConfigMenu support
+if ModConfigMenu and CustomCallbackHelper then
+    CustomCallbackHelper.AddCallback(mod, CustomCallbacks.MCM_POST_MODIFY_SETTING, mod.MCMHudUpdate, "General", "HudOffset")
+end
+

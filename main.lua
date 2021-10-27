@@ -3,7 +3,8 @@ local mod = RegisterMod("Planetarium Chance", 1)
 
 mod.initialized=false;
 
-function mod:onRender()
+function mod:onRender(shaderName)
+    if shaderName ~= "UI_DrawPlanetariumChance_DummyShader" then return end
     if mod:shouldDeHook() then return end
     --account for screenshake offset
     local textCoords = self.coords+Game().ScreenShakeOffset;
@@ -111,7 +112,7 @@ function mod:init(continued)
 
     self.hudSprite = Sprite()
     self.hudSprite:Load("gfx/ui/hudstats2.anm2", true)
-    self.hudSprite.Color = Color(1,1,1,0.45);
+    self.hudSprite.Color = Color(1,1,1,0.5);
     self.hudSprite:SetFrame("Idle", 8)
     self.font = Font();
     self.font:Load("font/luaminioutlined.fnt")
@@ -222,7 +223,7 @@ end
 --Multi stat display for coop only shows 2 lots of stats
 function mod:updatePosition(notches)
     notches = notches or self.storage.notches or 10 --default to ingame default of 11
-    self.coords = Vector(1, 184)
+    self.coords = Vector(1, 183)
     --check for char differences (any player is a char with a different offset)
 
     for i = 1, #self.storage.character do
@@ -360,7 +361,7 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.checkForPlanetarium);
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.init);
 mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.exit);
 
-mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.onRender);
+mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onRender);
 --mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.test)
 
 --update used to check for a char change (could use clicker? outside of render)

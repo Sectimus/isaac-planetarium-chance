@@ -212,7 +212,8 @@ function mod:shouldDeHook()
         not self.initialized,
         EveryoneHasCollectibleNum(CollectibleType.COLLECTIBLE_DADS_NOTE) > 0,
         Game().Challenge > 0,
-        not Game():GetHUD():IsVisible()
+        not Game():GetHUD():IsVisible(),
+		Game():GetSeeds():HasSeedEffect(SeedEffect.SEED_NO_HUD)
     }
 
     return reqs[1] or reqs[2] or reqs[3] or reqs[4] or reqs[5] or reqs[6] or reqs[7]

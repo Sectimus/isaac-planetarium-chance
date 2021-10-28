@@ -341,6 +341,10 @@ function mod:MCMHudUpdate(_, hudOffset)
     self:updateNotches(hudOffset)
 end
 
+function mod:rKeyCheck()
+	mod:init(false) --this should be good enough
+end
+
 ---------------------------------------------------------------------------------------------------------
 
 -- Custom Log Command
@@ -427,6 +431,9 @@ mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onRender);
 
 --update used to check for a char change (could use clicker? outside of render)
 mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.updateCheck)
+
+--check for R Key use and run init if used
+mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.rKeyCheck, CollectibleType.COLLECTIBLE_R_KEY);
 
 --keyboard check for HUD scale changes
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.keyboardCheck)

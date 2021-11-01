@@ -17,24 +17,25 @@
     [h3][b][i]Alternatively... Without Mod Config Menu:[/i][/b][/h3]
     1: Start a run
     2: [u]Do not[/u] have your game paused in any way (debug menu / pause screen etc.)
-    3: Press &quot;[b]shift+J[/b]&quot; or &quot;[b]shift+K[/b]&quot; to decrease / increase the hud offset
+    3: Press "[b]shift+J[/b]" or "[b]shift+K[/b]" to decrease / increase the hud offset
 
-This is due to a limitation in the modding API, where mods cannot read the options.ini file or access any variable that contains the in-game HUD offset value. An integration with mod config menu will be coming soon™
+This is due to a limitation in the modding API, where mods cannot read the options.ini file or access any variable that contains the in-game HUD offset value. 
+
+[hr][/hr]
+
+Restart your game if you disable / enable this mod in the same session. This is due to a crash with shader loading.
 
 [hr][/hr]
 
 Make sure you have the requirements unlocked to be able to actually see the planetarium.
 
-Bear in mind 99.9% doesn't guarantee a spawn: &quot;Note that the bonuses are additive (not multiplicative) and can reach 100%. However, only an attempt by the game to generate a Planetarium is guaranteed: they have the lowest priority in level generation and if the level does not have enough space, the room will not be placed. However, the bonus will remain intact for a later level if any remain.&quot; - https://bindingofisaacrebirth.fandom.com/wiki/Planetarium
+Bear in mind 99.9% doesn't guarantee a spawn: "Note that the bonuses are additive (not multiplicative) and can reach 100%. However, only an attempt by the game to generate a Planetarium is guaranteed: they have the lowest priority in level generation and if the level does not have enough space, the room will not be placed. However, the bonus will remain intact for a later level if any remain." - https://bindingofisaacrebirth.fandom.com/wiki/Planetarium
 
 [hr][/hr]
 
 Have any ideas? Found a bug? visit the mod repository @ https://github.com/Sectimus/isaac-planetarium-chance/issues
-
-⦿*Colours may be slightly off, this has been narrowed down to the shaders used in some areas, a fix is coming soon!*
-⦿*R-Key item may show an incorrect number when used*
 </description>
-    <version>3.0</version>
+    <version>3.1</version>
     <visibility>Public</visibility>
     <tag id="Lua"/>
     <tag id="Tweaks"/>

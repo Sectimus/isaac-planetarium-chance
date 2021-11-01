@@ -1,9 +1,11 @@
+PlanetariumChance = RegisterMod("Planetarium Chance", 1)
+local mod = PlanetariumChance
 local json = require("json")
-local mod = RegisterMod("Planetarium Chance", 1)
 
 mod.initialized=false;
 
-function mod:onRender()
+function mod:onRender(shaderName)
+    if shaderName ~= "UI_DrawPlanetariumChance_DummyShader" then return end
     if mod:shouldDeHook() then return end
     --account for screenshake offset
     local textCoords = self.coords+Game().ScreenShakeOffset;
@@ -13,14 +15,14 @@ function mod:onRender()
     else
         mod:updatePlanetariumChance();
     end
-    self.font:DrawString(valueOutput, textCoords.X+16, textCoords.Y, KColor(1,1,1,0.45),0,true)
+    self.font:DrawString(valueOutput, textCoords.X+16, textCoords.Y, KColor(1,1,1,0.5),0,true)
     self.hudSprite:Render(self.coords, Vector(0,0), Vector(0,0))
 
     --differential popup
     if self.fontalpha and self.fontalpha>0 then
         local alpha = self.fontalpha
-        if self.fontalpha > 0.45 then
-            alpha = 0.45
+        if self.fontalpha > 0.5 then
+            alpha = 0.5
         end
         if self.storage.previousFloorSpawnChance == nil then 
             self.storage.previousFloorSpawnChance = self.storage.currentFloorSpawnChance
@@ -111,7 +113,7 @@ function mod:init(continued)
 
     self.hudSprite = Sprite()
     self.hudSprite:Load("gfx/ui/hudstats2.anm2", true)
-    self.hudSprite.Color = Color(1,1,1,0.45);
+    self.hudSprite.Color = Color(1,1,1,0.5);
     self.hudSprite:SetFrame("Idle", 8)
     self.font = Font();
     self.font:Load("font/luaminioutlined.fnt")
@@ -119,7 +121,7 @@ function mod:init(continued)
     self.initialized = true;
 end
 
--- update on level transition
+-- update on new level
 function mod:updatePlanetariumChance()
     if mod:shouldDeHook() then return end
  
@@ -135,7 +137,7 @@ function mod:updatePlanetariumChance()
     
     --Planetariums can also not normally be encountered after Depths II, though Telescope Lens allows them to appear in  Womb and  Corpse.
     if (stage <= LevelStage.STAGE3_2) or (stage > LevelStage.STAGE3_2 and stage < LevelStage.STAGE5 and Isaac.GetPlayer():HasTrinket(TrinketType.TRINKET_TELESCOPE_LENS)) then --Before Womb or Between Womb/Utero with Telescope Lens
-        if(variant == StageType.STAGETYPE_REPENTANCE or variant == StageType.STAGETYPE_REPENTANCE_B) then stage = stage+1 end 
+        if (variant == StageType.STAGETYPE_REPENTANCE or variant == StageType.STAGETYPE_REPENTANCE_B) then stage = stage+1 end 
         local rooms = Game():GetLevel():GetRooms(); 
         for i = 0, #rooms-1 do 
             if rooms:Get(i).Data.Type == RoomType.ROOM_TREASURE then 
@@ -151,13 +153,13 @@ function mod:updatePlanetariumChance()
         end
 
         --items
-        if Isaac.GetPlayer():HasTrinket(TrinketType.TRINKET_TELESCOPE_LENS) then 
+        for i=1, EveryoneHasTrinketNum(TrinketType.TRINKET_TELESCOPE_LENS) do 
             self.storage.currentFloorSpawnChance = self.storage.currentFloorSpawnChance + 0.09; 
         end 
-        if Isaac.GetPlayer():HasCollectible(CollectibleType.COLLECTIBLE_MAGIC_8_BALL) then 
+        for i=1, EveryoneHasCollectibleNum(CollectibleType.COLLECTIBLE_MAGIC_8_BALL) do 
             self.storage.currentFloorSpawnChance = self.storage.currentFloorSpawnChance + 0.15; 
         end 
-        if Isaac.GetPlayer():HasCollectible(CollectibleType.COLLECTIBLE_CRYSTAL_BALL) then 
+		for i=1, EveryoneHasCollectibleNum(CollectibleType.COLLECTIBLE_CRYSTAL_BALL) do 
             self.storage.currentFloorSpawnChance = self.storage.currentFloorSpawnChance + 0.15; 
             if stage - treasurerooms_visited - 1 > 0 then 
                 self.storage.currentFloorSpawnChance = 1; 
@@ -167,14 +169,14 @@ function mod:updatePlanetariumChance()
         --visited already
         if self.storage.visited then
             self.storage.currentFloorSpawnChance = 0.01
-            if Isaac.GetPlayer():HasTrinket(TrinketType.TRINKET_TELESCOPE_LENS) then
+            if EveryoneHasTrinketNum(TrinketType.TRINKET_TELESCOPE_LENS) > 0 then
                 --If Isaac enters a Planetarium, the chance will be set to 1% and can be increased only with a Telescope Lens, by 15%.
                 self.storage.currentFloorSpawnChance = 0.15
             end
         end
 
 
-    elseif stage > LevelStage.STAGE3_2 and not Isaac.GetPlayer():HasTrinket(TrinketType.TRINKET_TELESCOPE_LENS) then --After depths2 and no Telescope Lens
+    elseif stage > LevelStage.STAGE3_2 and EveryoneHasTrinketNum(TrinketType.TRINKET_TELESCOPE_LENS) == 0 then --After depths2 and no Telescope Lens
         self.storage.currentFloorSpawnChance = 0;
     end
 
@@ -205,13 +207,13 @@ end
 function mod:shouldDeHook()
 
     local reqs = {
-        Game().Difficulty == Difficulty.DIFFICULTY_GREED,
-        Game().Difficulty == Difficulty.DIFFICULTY_GREEDIER,
+        Game().Difficulty >= Difficulty.DIFFICULTY_GREED, --should be both greed and greedier
         Game():GetLevel():GetStage() > LevelStage.STAGE7,
         not self.initialized,
-        Isaac.GetPlayer():HasCollectible(CollectibleType.COLLECTIBLE_DADS_NOTE),
-        not (Game().Challenge == 0),
-        not Game():GetHUD():IsVisible()
+        EveryoneHasCollectibleNum(CollectibleType.COLLECTIBLE_DADS_NOTE) > 0,
+        Game().Challenge > 0,
+        not Game():GetHUD():IsVisible(),
+		Game():GetSeeds():HasSeedEffect(SeedEffect.SEED_NO_HUD)
     }
 
     return reqs[1] or reqs[2] or reqs[3] or reqs[4] or reqs[5] or reqs[6] or reqs[7]
@@ -244,7 +246,7 @@ function mod:updatePosition(notches)
         self.coords = self.coords + Vector(0, 15)
     end
 
-    if Isaac.GetPlayer():HasCollectible(CollectibleType.COLLECTIBLE_DUALITY) then
+    if EveryoneHasCollectibleNum(CollectibleType.COLLECTIBLE_DUALITY) > 0 then
         self.coords = self.coords + Vector(0, -10)
     end
 
@@ -283,7 +285,7 @@ function mod:updateCheck()
 
 
     --duality can move the icon
-    if(Isaac.GetPlayer():HasCollectible(CollectibleType.COLLECTIBLE_DUALITY)) then
+    if(EveryoneHasCollectibleNum(CollectibleType.COLLECTIBLE_DUALITY) > 0) then
         self.storage.hadDuality = true
         updatePos = true;
     elseif self.storage.hadDuality then
@@ -340,12 +342,77 @@ function mod:MCMHudUpdate(_, hudOffset)
     self:updateNotches(hudOffset)
 end
 
+function mod:rKeyCheck()
+	mod:init(false) --this should be good enough
+end
+
 ---------------------------------------------------------------------------------------------------------
 
 -- Custom Log Command
 function log(text)
     Isaac.DebugString(tostring(text))
 end
+
+function GetPlayers(functionCheck, ...)
+
+	local args = {...}
+	local players = {}
+	
+	local game = Game()
+	
+	for i=1, game:GetNumPlayers() do
+	
+		local player = Isaac.GetPlayer(i-1)
+		
+		local argsPassed = true
+		
+		if type(functionCheck) == "function" then
+		
+			for j=1, #args do
+			
+				if args[j] == "player" then
+					args[j] = player
+				elseif args[j] == "currentPlayer" then
+					args[j] = i
+				end
+				
+			end
+			
+			if not functionCheck(table.unpack(args)) then
+			
+				argsPassed = false
+				
+			end
+			
+		end
+		
+		if argsPassed then
+			players[#players+1] = player
+		end
+		
+	end
+	
+	return players
+	
+end
+
+
+function EveryoneHasCollectibleNum(collectibleID)
+	local collectibleCount = 0
+	for _, player in pairs(GetPlayers()) do
+		collectibleCount = collectibleCount + player:GetCollectibleNum(collectibleID)
+	end
+	return collectibleCount
+end
+
+function EveryoneHasTrinketNum(trinketType)
+	local trinketCount = 0
+	for _, player in pairs(GetPlayers()) do
+		trinketCount = trinketCount + player:GetTrinketMultiplier(trinketType)
+	end
+	return trinketCount
+end
+
 
 --init self storage from mod namespace before any callbacks by blocking.
 function mod:initStore()
@@ -360,11 +427,14 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.checkForPlanetarium);
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.init);
 mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.exit);
 
-mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.onRender);
+mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onRender);
 --mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.test)
 
 --update used to check for a char change (could use clicker? outside of render)
 mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.updateCheck)
+
+--check for R Key use and run init if used
+mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.rKeyCheck, CollectibleType.COLLECTIBLE_R_KEY);
 
 --keyboard check for HUD scale changes
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.keyboardCheck)
@@ -373,4 +443,5 @@ mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.keyboardCheck)
 if ModConfigMenu and CustomCallbackHelper then
     CustomCallbackHelper.AddCallback(mod, CustomCallbacks.MCM_POST_MODIFY_SETTING, mod.MCMHudUpdate, "General", "HudOffset")
 end
+
 

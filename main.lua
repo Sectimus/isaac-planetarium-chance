@@ -88,7 +88,6 @@ end
 function mod:init(continued)
     if not continued then
         self.storage.currentFloorSpawnChance = nil
-        self.storage.visited = false
         --backup the notches
         if(mod:HasData()) then
             local tempstorage = json.decode(mod:LoadData())
@@ -129,64 +128,16 @@ function mod:updatePlanetariumChance()
     local game = Game();
     local level = game:GetLevel();
     local stage = level:GetStage();
-    
-    self.storage.currentFloorSpawnChance = 0.01; 
-    local stage = Game():GetLevel():GetStage(); 
-    local variant = Game():GetLevel():GetStageType(); 
-    local treasurerooms_visited = Game():GetTreasureRoomVisitCount(); 
-    
-    --Planetariums can also not normally be encountered after Depths II, though Telescope Lens allows them to appear in  Womb and  Corpse.
-    if (stage <= LevelStage.STAGE3_2) or (stage > LevelStage.STAGE3_2 and stage < LevelStage.STAGE5 and Isaac.GetPlayer():HasTrinket(TrinketType.TRINKET_TELESCOPE_LENS)) then --Before Womb or Between Womb/Utero with Telescope Lens
-        if (variant == StageType.STAGETYPE_REPENTANCE or variant == StageType.STAGETYPE_REPENTANCE_B) then stage = stage+1 end 
-        local rooms = Game():GetLevel():GetRooms(); 
-        for i = 0, #rooms-1 do 
-            if rooms:Get(i).Data.Type == RoomType.ROOM_TREASURE then 
-                if rooms:Get(i).VisitedCount > 0 then 
-                    treasurerooms_visited = treasurerooms_visited -1 
-                end 
-            end 
-        end 
-
-
-        if(stage - treasurerooms_visited - 1 > 0) then 
-            self.storage.currentFloorSpawnChance = self.storage.currentFloorSpawnChance + (0.20 * (stage - treasurerooms_visited - 1)); 
-        end
-
-        --items
-        for i=1, EveryoneHasTrinketNum(TrinketType.TRINKET_TELESCOPE_LENS) do 
-            self.storage.currentFloorSpawnChance = self.storage.currentFloorSpawnChance + 0.09; 
-        end 
-        for i=1, EveryoneHasCollectibleNum(CollectibleType.COLLECTIBLE_MAGIC_8_BALL) do 
-            self.storage.currentFloorSpawnChance = self.storage.currentFloorSpawnChance + 0.15; 
-        end 
-		for i=1, EveryoneHasCollectibleNum(CollectibleType.COLLECTIBLE_CRYSTAL_BALL) do 
-            self.storage.currentFloorSpawnChance = self.storage.currentFloorSpawnChance + 0.15; 
-            if stage - treasurerooms_visited - 1 > 0 then 
-                self.storage.currentFloorSpawnChance = 1; 
-            end 
-        end 
-
-        --visited already
-        if self.storage.visited then
-            self.storage.currentFloorSpawnChance = 0.01
-            if EveryoneHasTrinketNum(TrinketType.TRINKET_TELESCOPE_LENS) > 0 then
-                --If Isaac enters a Planetarium, the chance will be set to 1% and can be increased only with a Telescope Lens, by 15%.
-                self.storage.currentFloorSpawnChance = 0.15
-            end
-        end
-
-
-    elseif stage > LevelStage.STAGE3_2 and EveryoneHasTrinketNum(TrinketType.TRINKET_TELESCOPE_LENS) == 0 then --After depths2 and no Telescope Lens
-        self.storage.currentFloorSpawnChance = 0;
-    end
-
-    --Planetarium chance can never be more than 100%. (technically 99.9% as there is never a 100% guarantee)
-    if self.storage.currentFloorSpawnChance>0.999 then
-        self.storage.currentFloorSpawnChance = 0.999;
-    elseif self.storage.currentFloorSpawnChance<0 then 
-        self.storage.currentFloorSpawnChance = 0;
-    end
-
+	
+	self.storage.currentFloorSpawnChance = level:GetPlanetariumChance()
+	
+	--Planetarium chance can never be more than 100%. (technically 99.9% as there is never a 100% guarantee)
+	if self.storage.currentFloorSpawnChance>0.999 then
+		self.storage.currentFloorSpawnChance = 0.999;
+	elseif self.storage.currentFloorSpawnChance<0 then 
+		self.storage.currentFloorSpawnChance = 0;
+	end
+	
     --make absolute
     self.storage.currentFloorSpawnChance = self.storage.currentFloorSpawnChance * 100
 
@@ -196,21 +147,13 @@ function mod:updatePlanetariumChance()
     end
 end
 
-function mod:checkForPlanetarium()
-    if mod:shouldDeHook() then return end
-    local room = Game():GetRoom();
-    if(room:GetType() == RoomType.ROOM_PLANETARIUM) then
-        self.storage.visited = true;
-    end
-end
-
 function mod:shouldDeHook()
 
     local reqs = {
         Game().Difficulty >= Difficulty.DIFFICULTY_GREED, --should be both greed and greedier
         Game():GetLevel():GetStage() > LevelStage.STAGE7,
         not self.initialized,
-        EveryoneHasCollectibleNum(CollectibleType.COLLECTIBLE_DADS_NOTE) > 0,
+        Game():GetLevel():IsAscent(),
         Game().Challenge > 0,
         not Game():GetHUD():IsVisible(),
 		Game():GetSeeds():HasSeedEffect(SeedEffect.SEED_NO_HUD)
@@ -405,15 +348,6 @@ function EveryoneHasCollectibleNum(collectibleID)
 	return collectibleCount
 end
 
-function EveryoneHasTrinketNum(trinketType)
-	local trinketCount = 0
-	for _, player in pairs(GetPlayers()) do
-		trinketCount = trinketCount + player:GetTrinketMultiplier(trinketType)
-	end
-	return trinketCount
-end
-
-
 --init self storage from mod namespace before any callbacks by blocking.
 function mod:initStore()
     self.storage = {} 
@@ -422,7 +356,6 @@ end
 mod:initStore();
 
 mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.updatePlanetariumChance);
-mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.checkForPlanetarium);
 
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.init);
 mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.exit);

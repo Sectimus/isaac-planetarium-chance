@@ -131,7 +131,14 @@ function mod:updatePlanetariumChance()
     local stage = level:GetStage();
 	
 	self.storage.currentFloorSpawnChance = level:GetPlanetariumChance()
-
+	
+	--Planetarium chance can never be more than 100%. (technically 99.9% as there is never a 100% guarantee)
+	if self.storage.currentFloorSpawnChance>0.999 then
+		self.storage.currentFloorSpawnChance = 0.999;
+	elseif self.storage.currentFloorSpawnChance<0 then 
+		self.storage.currentFloorSpawnChance = 0;
+	end
+	
     --make absolute
     self.storage.currentFloorSpawnChance = self.storage.currentFloorSpawnChance * 100
 

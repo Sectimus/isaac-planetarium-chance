@@ -366,7 +366,6 @@ end
 mod:initStore();
 
 mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.updatePlanetariumChance);
-mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.checkForPlanetarium);
 
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.init);
 mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.exit);

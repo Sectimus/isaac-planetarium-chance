@@ -88,7 +88,6 @@ end
 function mod:init(continued)
     if not continued then
         self.storage.currentFloorSpawnChance = nil
-        self.storage.visited = false
         --backup the notches
         if(mod:HasData()) then
             local tempstorage = json.decode(mod:LoadData())
@@ -348,15 +347,6 @@ function EveryoneHasCollectibleNum(collectibleID)
 	end
 	return collectibleCount
 end
-
-function EveryoneHasTrinketNum(trinketType)
-	local trinketCount = 0
-	for _, player in pairs(GetPlayers()) do
-		trinketCount = trinketCount + player:GetTrinketMultiplier(trinketType)
-	end
-	return trinketCount
-end
-
 
 --init self storage from mod namespace before any callbacks by blocking.
 function mod:initStore()

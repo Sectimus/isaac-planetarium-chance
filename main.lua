@@ -186,7 +186,7 @@ function mod:updatePosition(notches)
 	end
 	--two sets of stats are displayed on multiplayer
 	if #self.storage.character > 1 then
-		self.coords = self.coords + Vector(0, 15)
+		self.coords = self.coords + Vector(0, 16)
 	end
 
 	if EveryoneHasCollectibleNum(CollectibleType.COLLECTIBLE_DUALITY) > 0 then

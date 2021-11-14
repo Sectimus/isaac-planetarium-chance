@@ -178,7 +178,6 @@ function mod:updatePosition(notches)
 		elseif self.storage.character[i] == PlayerType.PLAYER_THESOUL_B then 
 			table.remove(self.storage.character, i)
 			break;
-		--TODO when devs fix jacob &esau positioning, then update with jacob &esau here
 		elseif self.storage.character[i] == PlayerType.PLAYER_JACOB then
 			self.coords = self.coords + Vector(0, 13)
 			break;

@@ -87,7 +87,19 @@ end
 
 function mod:init(continued)
 	if not continued then
+		--challenges can still spawn planetariums if they can spawn treasure rooms, so detect if theres a treasure room on the first floor.
+		self.storage.gameHasTreasure = nil
+		local rooms = Game():GetLevel():GetRooms()
+		for i = 0, rooms.Size - 1 do
+			local room = rooms:Get(i).Data
+			if room.Type == RoomType.ROOM_TREASURE then
+				self.storage.gameHasTreasure = true
+				break
+			end
+		end
+		
 		self.storage.currentFloorSpawnChance = nil
+		
 		--backup the notches
 		if(mod:HasData()) then
 			local tempstorage = json.decode(mod:LoadData())
@@ -137,7 +149,7 @@ function mod:updatePlanetariumChance()
 	elseif self.storage.currentFloorSpawnChance<0 then 
 		self.storage.currentFloorSpawnChance = 0;
 	end
-	
+		
 	--make absolute
 	self.storage.currentFloorSpawnChance = self.storage.currentFloorSpawnChance * 100
 
@@ -154,7 +166,7 @@ function mod:shouldDeHook()
 		Game():GetLevel():GetStage() > LevelStage.STAGE7,
 		not self.initialized,
 		Game():GetLevel():IsAscent(),
-		Game().Challenge > 0,
+		not self.storage.gameHasTreasure,
 		not Game():GetHUD():IsVisible(),
 		Game():GetSeeds():HasSeedEffect(SeedEffect.SEED_NO_HUD)
 	}

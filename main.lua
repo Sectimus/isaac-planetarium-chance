@@ -190,7 +190,7 @@ function mod:updatePosition(notches)
 	end
 
 	if EveryoneHasCollectibleNum(CollectibleType.COLLECTIBLE_DUALITY) > 0 then
-		self.coords = self.coords + Vector(0, -10)
+		self.coords = self.coords + Vector(0, -12)
 	end
 
 	self.coords = self:hudoffset(notches, self.coords, "topleft");

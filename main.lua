@@ -149,6 +149,11 @@ function mod:updatePlanetariumChance()
 	elseif self.storage.currentFloorSpawnChance<0 then 
 		self.storage.currentFloorSpawnChance = 0;
 	end
+	
+	--Set to 0 during the Ascent
+	if level:IsAscent() then
+		self.storage.currentFloorSpawnChance = 0
+	end
 		
 	--make absolute
 	self.storage.currentFloorSpawnChance = self.storage.currentFloorSpawnChance * 100
@@ -162,16 +167,14 @@ end
 function mod:shouldDeHook()
 
 	local reqs = {
-		Game().Difficulty >= Difficulty.DIFFICULTY_GREED, --should be both greed and greedier
-		Game():GetLevel():GetStage() > LevelStage.STAGE7,
 		not self.initialized,
-		Game():GetLevel():IsAscent(),
 		not self.storage.gameHasTreasure,
 		not Game():GetHUD():IsVisible(),
+		Game().Difficulty >= Difficulty.DIFFICULTY_GREED, --should be both greed and greedier
 		Game():GetSeeds():HasSeedEffect(SeedEffect.SEED_NO_HUD)
 	}
 
-	return reqs[1] or reqs[2] or reqs[3] or reqs[4] or reqs[5] or reqs[6] or reqs[7]
+	return reqs[1] or reqs[2] or reqs[3] or reqs[4] or reqs[5]
 end
 
 --This callback is called 30 times per second. It will not be called, when its paused (for example on screentransitions or on the pause menu).

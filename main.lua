@@ -183,14 +183,13 @@ function mod:updatePosition(notches)
 	--check for char differences (any player is a char with a different offset)
 
 	for i = 1, #self.storage.character do
-		--TODO when devs fix tainted bethany positioning, then update with tainted bethany here
-		if self.storage.character[i] == PlayerType.PLAYER_BETHANY then 
+		if self.storage.character[i] == PlayerType.PLAYER_BETHANY or self.storage.character[i] == PlayerType.PLAYER_BETHANY_B then 
 			self.coords = self.coords + Vector(0, 12)
 			break;
 		elseif self.storage.character[i] == PlayerType.PLAYER_THESOUL_B then 
 			table.remove(self.storage.character, i)
 			break;
-		elseif self.storage.character[i] == PlayerType.PLAYER_JACOB then
+		elseif self.storage.character[i] == PlayerType.PLAYER_JACOB then --Jacob always has Esau so no need to check for Esau
 			self.coords = self.coords + Vector(0, 13)
 			break;
 		end

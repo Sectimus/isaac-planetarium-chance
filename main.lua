@@ -153,7 +153,7 @@ function mod:updatePosition()
 		self.coords = self.coords + Vector(0, -12)
 	end
 
-	if Game().Difficulty == Difficulty.DIFFICULTY_NORMAL then
+	if Game().Difficulty == Difficulty.DIFFICULTY_NORMAL and Isaac.GetChallenge() == 0 then
 		self.coords = self.coords + Vector(0, -16)
 	end
 

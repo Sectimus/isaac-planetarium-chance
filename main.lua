@@ -128,20 +128,19 @@ end
 --This callback is called 30 times per second. It will not be called, when its paused (for example on screentransitions or on the pause menu).
 --Base coords are set here, they will be modified by hudoffset on another callback
 --Multi stat display for coop only shows 2 lots of stats
-function mod:updatePosition(notches)
-	notches = Options.HUDOffset * 10
-	self.coords = Vector(0, 183.5)
+function mod:updatePosition()
+	self.coords = Vector(0, 185)
 	--check for char differences (any player is a char with a different offset)
 
 	for i = 1, #self.storage.character do
 		if self.storage.character[i] == PlayerType.PLAYER_BETHANY or self.storage.character[i] == PlayerType.PLAYER_BETHANY_B then 
-			self.coords = self.coords + Vector(0, 12)
+			self.coords = self.coords + Vector(0, 9)
 			break;
 		elseif self.storage.character[i] == PlayerType.PLAYER_THESOUL_B then 
 			table.remove(self.storage.character, i)
 			break;
 		elseif self.storage.character[i] == PlayerType.PLAYER_JACOB then --Jacob always has Esau so no need to check for Esau
-			self.coords = self.coords + Vector(0, 13)
+			self.coords = self.coords + Vector(0, 14)
 			break;
 		end
 	end
@@ -154,7 +153,9 @@ function mod:updatePosition(notches)
 		self.coords = self.coords + Vector(0, -12)
 	end
 
-	self.coords = self:hudoffset(notches, self.coords, "topleft");
+	self.coords = self.coords + (Options.HUDOffset * Vector(20, 12))
+
+	print(tostring(self.coords))
 end
 
 --checks if char has been changed
@@ -186,50 +187,25 @@ function mod:updateCheck()
 			table.remove(self.storage.character, activePlayers+p)
 		end
 	end
-
+	
+	if self.storage.hudoffset ~= Options.HUDOffset then
+		updatePos = true
+		self.storage.hudoffset = Options.HUDOffset
+	end
 
 	--duality can move the icon
 	if(EveryoneHasCollectibleNum(CollectibleType.COLLECTIBLE_DUALITY) > 0) then
 		self.storage.hadDuality = true
 		updatePos = true;
 	elseif self.storage.hadDuality then
-
 		updatePos = true;
 		self.storage.hadDuality = false
 	end
+	
 
 	if updatePos then
 		self:updatePosition();
 	end
-end
-
---[[
-  @param {int} notches - the number of notches filled in on hud offset (default ingame is between 0-11)
-  @param {Vector} vector - original vector coordinates
-  @param {float} y - original y coordinate
-  @param {string} anchor - the anchoring position of the element: "topleft", "topright", "bottomleft", "bottomright" IE. stats are "topleft", minimap is "topright"
-]]
-function mod:hudoffset(notches, vector, anchor)
-	local xoffset = (notches*2)
-	local yoffset = ((1/8)*(10*notches+(-1)^notches+7))
-	if anchor == "topleft" then
-		xoffset = vector.X+xoffset
-		yoffset = vector.Y+yoffset
-	elseif anchor == "topright" then
-		xoffset = vector.X-xoffset
-		yoffset = vector.Y+yoffset
-	elseif anchor == "bottomleft" then
-		xoffset = vector.X+xoffset
-		yoffset = vector.Y-yoffset
-	elseif anchor == "bottomright" then
-		xoffset = vector.X-xoffset
-		yoffset = vector.Y-yoffset
-	else
-		error("invalid anchor provided. Must be one of: \"topleft\", \"topright\", \"bottomleft\", \"bottomright\"", 2)
-	end
-	-- log(xoffset)
-	-- log(yoffset)
-	return Vector(xoffset, yoffset);
 end
 
 function mod:rKeyCheck()
@@ -285,7 +261,6 @@ function GetPlayers(functionCheck, ...)
 	return players
 	
 end
-
 
 function EveryoneHasCollectibleNum(collectibleID)
 	local collectibleCount = 0

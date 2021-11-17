@@ -153,6 +153,10 @@ function mod:updatePosition()
 		self.coords = self.coords + Vector(0, -12)
 	end
 
+	if Game().Difficulty == Difficulty.DIFFICULTY_NORMAL then
+		self.coords = self.coords + Vector(0, -16)
+	end
+
 	self.coords = self.coords + (Options.HUDOffset * Vector(20, 12))
 
 	print(tostring(self.coords))
@@ -201,8 +205,7 @@ function mod:updateCheck()
 		updatePos = true;
 		self.storage.hadDuality = false
 	end
-	
-
+			
 	if updatePos then
 		self:updatePosition();
 	end

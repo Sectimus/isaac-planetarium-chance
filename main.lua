@@ -46,45 +46,6 @@ function mod:exit()
 	--TODO cleanup sprite
 end
 
---update the notch value in storage (and mod menu) after validation
---n = a string defining "+" for increment or "-" for decrement or an int for a set value.
-function mod:updateNotches(n)
-
-	--cleans the value to the bounds of the notches
-	function clean(n)
-		if n > 10 then n = 10
-		elseif n < 0 then n = 0 end
-
-		return n
-	end
-
-	if type(n) == "string" and utf8.len(n) == 1 then
-		--check for char type
-		if string.match(n, "%+") then
-			if self.storage.notches then
-				self.storage.notches = clean(self.storage.notches + 1)
-				self:updatePosition()
-			else
-				self.storage.notches = clean(10)
-			end
-		elseif string.match(n, "%-") then
-			if self.storage.notches then
-				self.storage.notches = clean(self.storage.notches - 1)
-				self:updatePosition()
-			else
-				self.storage.notches = clean(10)
-			end
-		end
-	elseif type(n) == "number" and math.floor(n) == n then
-		self.storage.notches = clean(n)
-		self:updatePosition()
-	end
-
-	-- if ModConfigMenu then
-	--	   --self.storage.notches = ModConfigMenu.Config.General.HudOffset
-	-- end
-end
-
 function mod:init(continued)
 	if not continued then
 		--challenges can still spawn planetariums if they can spawn treasure rooms, so detect if theres a treasure room on the first floor.
@@ -99,23 +60,8 @@ function mod:init(continued)
 		end
 		
 		self.storage.currentFloorSpawnChance = nil
-		
-		--backup the notches
-		if(mod:HasData()) then
-			local tempstorage = json.decode(mod:LoadData())
-			mod:RemoveData()
-			self.storage.notches = tempstorage.notches
-			if(self.storage.notches == nil or self.storage.notches < 0 or self.storage.notches > 10) then
-				self.storage.notches = 10;
-			end
-			mod:SaveData(json.encode(self.storage))
-		end
+
 		self:updatePlanetariumChance();
-	elseif(mod:HasData()) then
-		self.storage = json.decode(mod:LoadData())
-		if(self.storage.notches == nil or self.storage.notches < 0 or self.storage.notches > 10) then
-			self.storage.notches = 10;
-		end
 	end
 
 	--check char
@@ -182,8 +128,8 @@ end
 --Base coords are set here, they will be modified by hudoffset on another callback
 --Multi stat display for coop only shows 2 lots of stats
 function mod:updatePosition(notches)
-	notches = notches or self.storage.notches or 10 --default to ingame default of 11
-	self.coords = Vector(1, 183.5)
+	notches = Options.HUDOffset * 10
+	self.coords = Vector(0, 183.5)
 	--check for char differences (any player is a char with a different offset)
 
 	for i = 1, #self.storage.character do
@@ -285,20 +231,6 @@ function mod:hudoffset(notches, vector, anchor)
 	return Vector(xoffset, yoffset);
 end
 
-function mod:keyboardCheck()
-	if (Input.IsButtonPressed(Keyboard.KEY_LEFT_SHIFT, 0) or Input.IsButtonPressed(Keyboard.KEY_RIGHT_SHIFT, 0)) and not Game():IsPaused() then
-		if Input.IsButtonTriggered(Keyboard.KEY_J, 0) and not Game():IsPaused() then
-			self:updateNotches("-")
-		elseif Input.IsButtonTriggered(Keyboard.KEY_K, 0) and not Game():IsPaused() then
-			self:updateNotches("+")
-		end
-	end
-end
-
-function mod:MCMHudUpdate(_, hudOffset)
-	self:updateNotches(hudOffset)
-end
-
 function mod:rKeyCheck()
 	mod:init(false) --this should be good enough
 end
@@ -382,13 +314,5 @@ mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.updateCheck)
 
 --check for R Key use and run init if used
 mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.rKeyCheck, CollectibleType.COLLECTIBLE_R_KEY);
-
---keyboard check for HUD scale changes
-mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.keyboardCheck)
-
---custom callback for ModConfigMenu support
-if ModConfigMenu and CustomCallbackHelper then
-	CustomCallbackHelper.AddCallback(mod, CustomCallbacks.MCM_POST_MODIFY_SETTING, mod.MCMHudUpdate, "General", "HudOffset")
-end
 
 

@@ -158,8 +158,6 @@ function mod:updatePosition()
 	end
 
 	self.coords = self.coords + (Options.HUDOffset * Vector(20, 12))
-
-	print(tostring(self.coords))
 end
 
 --checks if char has been changed

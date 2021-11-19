@@ -5,129 +5,87 @@ local json = require("json")
 mod.initialized=false;
 
 function mod:onRender(shaderName)
-    if shaderName ~= "UI_DrawPlanetariumChance_DummyShader" then return end
-    if mod:shouldDeHook() then return end
-    --account for screenshake offset
-    local textCoords = self.coords+Game().ScreenShakeOffset;
-    local valueOutput = string.format("%.1s%%", "?")
-    if self.storage.currentFloorSpawnChance then
-        valueOutput = string.format("%.1f%%", self.storage.currentFloorSpawnChance)
-    else
-        mod:updatePlanetariumChance();
-    end
-    self.font:DrawString(valueOutput, textCoords.X+16, textCoords.Y, KColor(1,1,1,0.5),0,true)
-    self.hudSprite:Render(self.coords, Vector(0,0), Vector(0,0))
+	if shaderName ~= "UI_DrawPlanetariumChance_DummyShader" then return end
+	if mod:shouldDeHook() then return end
+	--account for screenshake offset
+	local textCoords = self.coords+Game().ScreenShakeOffset;
+	local valueOutput = string.format("%.1s%%", "?")
+	if self.storage.currentFloorSpawnChance then
+		valueOutput = string.format("%.1f%%", self.storage.currentFloorSpawnChance)
+	else
+		mod:updatePlanetariumChance();
+	end
+	self.font:DrawString(valueOutput, textCoords.X+16, textCoords.Y, KColor(1,1,1,0.5),0,true)
+	self.hudSprite:Render(self.coords, Vector(0,0), Vector(0,0))
 
-    --differential popup
-    if self.fontalpha and self.fontalpha>0 then
-        local alpha = self.fontalpha
-        if self.fontalpha > 0.5 then
-            alpha = 0.5
-        end
-        if self.storage.previousFloorSpawnChance == nil then 
-            self.storage.previousFloorSpawnChance = self.storage.currentFloorSpawnChance
-        end
-        local difference = self.storage.currentFloorSpawnChance - self.storage.previousFloorSpawnChance;
-        local differenceOutput = string.format("%.1f%%", difference)
-        if difference>0 then --positive difference
-            self.font:DrawString("+"..differenceOutput, textCoords.X+16+self.font:GetStringWidth(valueOutput)+3, textCoords.Y, KColor(0,1,0,alpha),0,true)
-        elseif difference<0 then --negative difference
-            self.font:DrawString(differenceOutput, textCoords.X+16+self.font:GetStringWidth(valueOutput)+3, textCoords.Y, KColor(1,0,0,alpha),0,true)
-        end
-        self.fontalpha = self.fontalpha-0.01
-    end
+	--differential popup
+	if self.fontalpha and self.fontalpha>0 then
+		local alpha = self.fontalpha
+		if self.fontalpha > 0.5 then
+			alpha = 0.5
+		end
+		if self.storage.previousFloorSpawnChance == nil then 
+			self.storage.previousFloorSpawnChance = self.storage.currentFloorSpawnChance
+		end
+		local difference = self.storage.currentFloorSpawnChance - self.storage.previousFloorSpawnChance;
+		local differenceOutput = string.format("%.1f%%", difference)
+		if difference>0 then --positive difference
+			self.font:DrawString("+"..differenceOutput, textCoords.X+16+self.font:GetStringWidth(valueOutput)+3, textCoords.Y, KColor(0,1,0,alpha),0,true)
+		elseif difference<0 then --negative difference
+			self.font:DrawString(differenceOutput, textCoords.X+16+self.font:GetStringWidth(valueOutput)+3, textCoords.Y, KColor(1,0,0,alpha),0,true)
+		end
+		self.fontalpha = self.fontalpha-0.01
+	end
 end
 
 function mod:exit()
-    if mod:shouldDeHook() then return end
-    if self.storage then
-        mod:SaveData(json.encode(self.storage))
-    end
-    --TODO cleanup sprite
-end
-
---update the notch value in storage (and mod menu) after validation
---n = a string defining "+" for increment or "-" for decrement or an int for a set value.
-function mod:updateNotches(n)
-
-    --cleans the value to the bounds of the notches
-    function clean(n)
-        if n > 10 then n = 10
-        elseif n < 0 then n = 0 end
-
-        return n
-    end
-
-    if type(n) == "string" and utf8.len(n) == 1 then
-        --check for char type
-        if string.match(n, "%+") then
-            if self.storage.notches then
-                self.storage.notches = clean(self.storage.notches + 1)
-                self:updatePosition()
-            else
-                self.storage.notches = clean(10)
-            end
-        elseif string.match(n, "%-") then
-            if self.storage.notches then
-                self.storage.notches = clean(self.storage.notches - 1)
-                self:updatePosition()
-            else
-                self.storage.notches = clean(10)
-            end
-        end
-    elseif type(n) == "number" and math.floor(n) == n then
-        self.storage.notches = clean(n)
-        self:updatePosition()
-    end
-
-    -- if ModConfigMenu then
-    --     --self.storage.notches = ModConfigMenu.Config.General.HudOffset
-    -- end
+	if mod:shouldDeHook() then return end
+	if self.storage then
+		mod:SaveData(json.encode(self.storage))
+	end
+	--TODO cleanup sprite
 end
 
 function mod:init(continued)
-    if not continued then
-        self.storage.currentFloorSpawnChance = nil
-        --backup the notches
-        if(mod:HasData()) then
-            local tempstorage = json.decode(mod:LoadData())
-            mod:RemoveData()
-            self.storage.notches = tempstorage.notches
-            if(self.storage.notches == nil or self.storage.notches < 0 or self.storage.notches > 10) then
-                self.storage.notches = 10;
-            end
-            mod:SaveData(json.encode(self.storage))
-        end
-        self:updatePlanetariumChance();
-    elseif(mod:HasData()) then
-        self.storage = json.decode(mod:LoadData())
-        if(self.storage.notches == nil or self.storage.notches < 0 or self.storage.notches > 10) then
-            self.storage.notches = 10;
-        end
-    end
+	if not continued then
+		--challenges can still spawn planetariums if they can spawn treasure rooms, so detect if theres a treasure room on the first floor.
+		self.storage.gameHasTreasure = nil
+		local rooms = Game():GetLevel():GetRooms()
+		for i = 0, rooms.Size - 1 do
+			local room = rooms:Get(i).Data
+			if room.Type == RoomType.ROOM_TREASURE then
+				self.storage.gameHasTreasure = true
+				break
+			end
+		end
+		
+		self.storage.currentFloorSpawnChance = nil
 
-    --check char
-    self:updateCheck();
-    self:updatePosition();
+		self:updatePlanetariumChance();
+	end
 
-    self.hudSprite = Sprite()
-    self.hudSprite:Load("gfx/ui/hudstats2.anm2", true)
-    self.hudSprite.Color = Color(1,1,1,0.5);
-    self.hudSprite:SetFrame("Idle", 8)
-    self.font = Font();
-    self.font:Load("font/luaminioutlined.fnt")
+	--check char
+	self:updateCheck();
+	self:updatePosition();
 
-    self.initialized = true;
+	self.hudSprite = Sprite()
+	self.hudSprite:Load("gfx/ui/hudstats2.anm2", true)
+	self.hudSprite.Color = Color(1,1,1,0.5);
+	self.hudSprite:SetFrame("Idle", 8)
+	self.font = Font();
+	self.font:Load("font/luaminioutlined.fnt")
+
+	self.initialized = true;
 end
 
 -- update on new level
 function mod:updatePlanetariumChance()
-    if mod:shouldDeHook() then return end
+	if mod:shouldDeHook() then return end
  
-    self.storage.previousFloorSpawnChance = self.storage.currentFloorSpawnChance
-    local game = Game();
-    local level = game:GetLevel();
-    local stage = level:GetStage();
+	self.storage.previousFloorSpawnChance = self.storage.currentFloorSpawnChance
+	local game = Game();
+	local level = game:GetLevel();
+	local stage = level:GetStage();
 	
 	self.storage.currentFloorSpawnChance = level:GetPlanetariumChance()
 	
@@ -138,151 +96,117 @@ function mod:updatePlanetariumChance()
 		self.storage.currentFloorSpawnChance = 0;
 	end
 	
-    --make absolute
-    self.storage.currentFloorSpawnChance = self.storage.currentFloorSpawnChance * 100
+	--Set to 0 during the Ascent
+	if level:IsAscent() then
+		self.storage.currentFloorSpawnChance = 0
+	end
+		
+	--make absolute
+	self.storage.currentFloorSpawnChance = self.storage.currentFloorSpawnChance * 100
 
-    --don't display popup if there is no change
-    if self.storage.previousFloorSpawnChance and (self.storage.currentFloorSpawnChance - self.storage.previousFloorSpawnChance ) then
-        self.fontalpha = 3
-    end
+	--don't display popup if there is no change
+	if self.storage.previousFloorSpawnChance and (self.storage.currentFloorSpawnChance - self.storage.previousFloorSpawnChance ) then
+		self.fontalpha = 3
+	end
 end
 
 function mod:shouldDeHook()
 
-    local reqs = {
-        Game().Difficulty >= Difficulty.DIFFICULTY_GREED, --should be both greed and greedier
-        Game():GetLevel():GetStage() > LevelStage.STAGE7,
-        not self.initialized,
-        Game():GetLevel():IsAscent(),
-        Game().Challenge > 0,
-        not Game():GetHUD():IsVisible(),
+	local reqs = {
+		not self.initialized,
+		not Options.FoundHUD,
+		not self.storage.gameHasTreasure,
+		not Game():GetHUD():IsVisible(),
+		Game():GetRoom():GetType() == RoomType.ROOM_DUNGEON and Game():GetLevel():GetAbsoluteStage() == LevelStage.STAGE8, --beast fight
+		Game().Difficulty >= Difficulty.DIFFICULTY_GREED, --should be both greed and greedier
 		Game():GetSeeds():HasSeedEffect(SeedEffect.SEED_NO_HUD)
-    }
+	}
 
-    return reqs[1] or reqs[2] or reqs[3] or reqs[4] or reqs[5] or reqs[6] or reqs[7]
+	return reqs[1] or reqs[2] or reqs[3] or reqs[4] or reqs[5] or reqs[6] or reqs[7]
 end
 
 --This callback is called 30 times per second. It will not be called, when its paused (for example on screentransitions or on the pause menu).
 --Base coords are set here, they will be modified by hudoffset on another callback
 --Multi stat display for coop only shows 2 lots of stats
-function mod:updatePosition(notches)
-    notches = notches or self.storage.notches or 10 --default to ingame default of 11
-    self.coords = Vector(1, 184)
-    --check for char differences (any player is a char with a different offset)
+function mod:updatePosition()
+	self.coords = Vector(0, 185)
+	--check for char differences (any player is a char with a different offset)
 
-    for i = 1, #self.storage.character do
-        --TODO when devs fix tainted bethany positioning, then update with tainted bethany here
-        if self.storage.character[i] == PlayerType.PLAYER_BETHANY then 
-            self.coords = self.coords + Vector(0, 12)
-            break;
-        elseif self.storage.character[i] == PlayerType.PLAYER_THESOUL_B then 
-            table.remove(self.storage.character, i)
-            break;
-        --TODO when devs fix jacob &esau positioning, then update with jacob &esau here
-        elseif false then
-            self.coords = self.coords + Vector(0, 12)
-            break;
-        end
-    end
-    --two sets of stats are displayed on multiplayer
-    if #self.storage.character > 1 then
-        self.coords = self.coords + Vector(0, 15)
-    end
+	for i = 1, #self.storage.character do
+		if self.storage.character[i] == PlayerType.PLAYER_BETHANY or self.storage.character[i] == PlayerType.PLAYER_BETHANY_B then 
+			self.coords = self.coords + Vector(0, 9)
+			break;
+		elseif self.storage.character[i] == PlayerType.PLAYER_THESOUL_B then 
+			table.remove(self.storage.character, i)
+			break;
+		elseif self.storage.character[i] == PlayerType.PLAYER_JACOB then --Jacob always has Esau so no need to check for Esau
+			self.coords = self.coords + Vector(0, 14)
+			break;
+		end
+	end
+	--two sets of stats are displayed on multiplayer
+	if #self.storage.character > 1 then
+		self.coords = self.coords + Vector(0, 16)
+	end
 
-    if EveryoneHasCollectibleNum(CollectibleType.COLLECTIBLE_DUALITY) > 0 then
-        self.coords = self.coords + Vector(0, -10)
-    end
+	if EveryoneHasCollectibleNum(CollectibleType.COLLECTIBLE_DUALITY) > 0 then
+		self.coords = self.coords + Vector(0, -12)
+	end
 
-    self.coords = self:hudoffset(notches, self.coords, "topleft");
+	if Game().Difficulty == Difficulty.DIFFICULTY_NORMAL and Isaac.GetChallenge() == 0 then
+		self.coords = self.coords + Vector(0, -16)
+	end
+
+	self.coords = self.coords + (Options.HUDOffset * Vector(20, 12))
 end
 
 --checks if char has been changed
 function mod:updateCheck()
-    local updatePos = false;
-    if self.storage.character == nil or self.storage.character == 0 then self.storage.character = {} end
+	local updatePos = false;
+	if self.storage.character == nil or self.storage.character == 0 then self.storage.character = {} end
 
-    local activePlayers = Game():GetNumPlayers()
-    for p = 1, activePlayers do
-        --remove babies as they do not have stats. 
-        local isBaby = Game():GetPlayer(p):GetBabySkin() ~= -1
-        if isBaby then
-            activePlayers = activePlayers-1
-        end
-    end
+	local activePlayers = Game():GetNumPlayers()
+	for p = 1, activePlayers do
+		--remove babies as they do not have stats. 
+		local isBaby = Game():GetPlayer(p):GetBabySkin() ~= -1
+		if isBaby then
+			activePlayers = activePlayers-1
+		end
+	end
 
-    for p = 1, activePlayers do
-        local playertype = Isaac.GetPlayer(p-1):GetPlayerType();
-        if not (self.storage.character[p] == playertype) then
-            self.storage.character[p] = playertype
-            updatePos = true;
-        end
-    end
+	for p = 1, activePlayers do
+		local playertype = Isaac.GetPlayer(p-1):GetPlayerType();
+		if not (self.storage.character[p] == playertype) then
+			self.storage.character[p] = playertype
+			updatePos = true;
+		end
+	end
 
-    local missingPlayers = 4 - activePlayers
+	local missingPlayers = 4 - activePlayers
 
-    for p=1, missingPlayers do
-        if(self.storage.character[activePlayers+p]) then
-            table.remove(self.storage.character, activePlayers+p)
-        end
-    end
+	for p=1, missingPlayers do
+		if(self.storage.character[activePlayers+p]) then
+			table.remove(self.storage.character, activePlayers+p)
+		end
+	end
+	
+	if self.storage.hudoffset ~= Options.HUDOffset then
+		updatePos = true
+		self.storage.hudoffset = Options.HUDOffset
+	end
 
-
-    --duality can move the icon
-    if(EveryoneHasCollectibleNum(CollectibleType.COLLECTIBLE_DUALITY) > 0) then
-        self.storage.hadDuality = true
-        updatePos = true;
-    elseif self.storage.hadDuality then
-
-        updatePos = true;
-        self.storage.hadDuality = false
-    end
-
-    if updatePos then
-        self:updatePosition();
-    end
-end
-
---[[
-  @param {int} notches - the number of notches filled in on hud offset (default ingame is between 0-11)
-  @param {Vector} vector - original vector coordinates
-  @param {float} y - original y coordinate
-  @param {string} anchor - the anchoring position of the element: "topleft", "topright", "bottomleft", "bottomright" IE. stats are "topleft", minimap is "topright"
-]]
-function mod:hudoffset(notches, vector, anchor)
-    local xoffset = (notches*2)
-    local yoffset = ((1/8)*(10*notches+(-1)^notches+7))
-    if anchor == "topleft" then
-        xoffset = vector.X+xoffset
-        yoffset = vector.Y+yoffset
-    elseif anchor == "topright" then
-        xoffset = vector.X-xoffset
-        yoffset = vector.Y+yoffset
-    elseif anchor == "bottomleft" then
-        xoffset = vector.X+xoffset
-        yoffset = vector.Y-yoffset
-    elseif anchor == "bottomright" then
-        xoffset = vector.X-xoffset
-        yoffset = vector.Y-yoffset
-    else
-        error("invalid anchor provided. Must be one of: \"topleft\", \"topright\", \"bottomleft\", \"bottomright\"", 2)
-    end
-    -- log(xoffset)
-    -- log(yoffset)
-    return Vector(xoffset, yoffset);
-end
-
-function mod:keyboardCheck()
-    if (Input.IsButtonPressed(Keyboard.KEY_LEFT_SHIFT, 0) or Input.IsButtonPressed(Keyboard.KEY_RIGHT_SHIFT, 0)) and not Game():IsPaused() then
-        if Input.IsButtonTriggered(Keyboard.KEY_J, 0) and not Game():IsPaused() then
-            self:updateNotches("-")
-        elseif Input.IsButtonTriggered(Keyboard.KEY_K, 0) and not Game():IsPaused() then
-            self:updateNotches("+")
-        end
-    end
-end
-
-function mod:MCMHudUpdate(_, hudOffset)
-    self:updateNotches(hudOffset)
+	--duality can move the icon
+	if(EveryoneHasCollectibleNum(CollectibleType.COLLECTIBLE_DUALITY) > 0) then
+		self.storage.hadDuality = true
+		updatePos = true;
+	elseif self.storage.hadDuality then
+		updatePos = true;
+		self.storage.hadDuality = false
+	end
+			
+	if updatePos then
+		self:updatePosition();
+	end
 end
 
 function mod:rKeyCheck()
@@ -293,7 +217,7 @@ end
 
 -- Custom Log Command
 function log(text)
-    Isaac.DebugString(tostring(text))
+	Isaac.DebugString(tostring(text))
 end
 
 function GetPlayers(functionCheck, ...)
@@ -339,7 +263,6 @@ function GetPlayers(functionCheck, ...)
 	
 end
 
-
 function EveryoneHasCollectibleNum(collectibleID)
 	local collectibleCount = 0
 	for _, player in pairs(GetPlayers()) do
@@ -350,8 +273,8 @@ end
 
 --init self storage from mod namespace before any callbacks by blocking.
 function mod:initStore()
-    self.storage = {} 
-    self.coords = Vector(21, 197.5)
+	self.storage = {} 
+	self.coords = Vector(21, 197.5)
 end
 mod:initStore();
 
@@ -368,13 +291,5 @@ mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.updateCheck)
 
 --check for R Key use and run init if used
 mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.rKeyCheck, CollectibleType.COLLECTIBLE_R_KEY);
-
---keyboard check for HUD scale changes
-mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.keyboardCheck)
-
---custom callback for ModConfigMenu support
-if ModConfigMenu and CustomCallbackHelper then
-    CustomCallbackHelper.AddCallback(mod, CustomCallbacks.MCM_POST_MODIFY_SETTING, mod.MCMHudUpdate, "General", "HudOffset")
-end
 
 

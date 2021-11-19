@@ -5,21 +5,21 @@
     <id>2489006943</id>
     <description>Displays the chance of a planetarium being present (on the current floor) in the HUD. Takes into account all items, collectibles and modifiers.
 
-[b][u]----------READ THE DESCRIPTION BEFORE COMMENTING!!!----------[/u][/b]
-
 [i]items that affect the chance of a planetarium spawn will not show until you enter the next floor, as your current floor layout will not change.[/i]
 
 [hr][/hr]
 
 [h1]Configuring the HUD offset:[/h1]
 
-    [b] You can use either [url=https://steamcommunity.com/sharedfiles/filedetails/?id=1603631350]Mod Config Menu[/url] or [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2487535818]Mod Config Menu - Continued[/url] and select your HUD offset in the GUI (press 'L' or 'F10') [/b]
+    [h2]Just change your HUD offset in the menu! (Thanks ED!)[/h2]
+
+    [strike][b] You can use either [url=https://steamcommunity.com/sharedfiles/filedetails/?id=1603631350]Mod Config Menu[/url] or [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2487535818]Mod Config Menu - Continued[/url] and select your HUD offset in the GUI (press 'L' or 'F10') [/b]
     [h3][b][i]Alternatively... Without Mod Config Menu:[/i][/b][/h3]
     1: Start a run
     2: [u]Do not[/u] have your game paused in any way (debug menu / pause screen etc.)
     3: Press &quot;[b]shift+J[/b]&quot; or &quot;[b]shift+K[/b]&quot; to decrease / increase the hud offset
 
-This is due to a limitation in the modding API, where mods cannot read the options.ini file or access any variable that contains the in-game HUD offset value. 
+This is due to a limitation in the modding API, where mods cannot read the options.ini file or access any variable that contains the in-game HUD offset value. [/strike]
 
 [hr][/hr]
 
@@ -34,7 +34,7 @@ Bear in mind 99.9% doesn't guarantee a spawn: &quot;Note that the bonuses are ad
 [hr][/hr]
 
 Have any ideas? Found a bug? visit the mod repository @ https://github.com/Sectimus/isaac-planetarium-chance/issues</description>
-    <version>4.0</version>
+    <version>5.0</version>
     <visibility>Public</visibility>
     <tag id="Lua"/>
     <tag id="Tweaks"/>

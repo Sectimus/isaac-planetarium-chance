@@ -7,6 +7,10 @@ mod.initialized=false;
 function mod:onRender(shaderName)
 	if shaderName ~= "UI_DrawPlanetariumChance_DummyShader" then return end
 	if mod:shouldDeHook() then return end
+
+	--check for notch update on pause
+	if Game():IsPaused() then mod:updateCheck() end
+
 	--account for screenshake offset
 	local textCoords = self.coords+Game().ScreenShakeOffset;
 	local valueOutput = string.format("%.1s%%", "?")
@@ -285,9 +289,6 @@ mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.exit);
 
 mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onRender);
 --mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.test)
-
---update used to check for a char change (could use clicker? outside of render)
-mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.updateCheck)
 
 --check for R Key use and run init if used
 mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.rKeyCheck, CollectibleType.COLLECTIBLE_R_KEY);

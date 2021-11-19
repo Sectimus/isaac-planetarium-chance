@@ -44,29 +44,24 @@ end
 
 function mod:exit()
 	if mod:shouldDeHook() then return end
-	if self.storage then
-		mod:SaveData(json.encode(self.storage))
-	end
 	--TODO cleanup sprite
 end
 
 function mod:init(continued)
-	if not continued then
-		--challenges can still spawn planetariums if they can spawn treasure rooms, so detect if theres a treasure room on the first floor.
-		self.storage.gameHasTreasure = nil
-		local rooms = Game():GetLevel():GetRooms()
-		for i = 0, rooms.Size - 1 do
-			local room = rooms:Get(i).Data
-			if room.Type == RoomType.ROOM_TREASURE then
-				self.storage.gameHasTreasure = true
-				break
-			end
+	--challenges can still spawn planetariums if they can spawn treasure rooms, so detect if theres a treasure room on the first floor.
+	self.storage.gameHasTreasure = nil
+	local rooms = Game():GetLevel():GetRooms()
+	for i = 0, rooms.Size - 1 do
+		local room = rooms:Get(i).Data
+		if room.Type == RoomType.ROOM_TREASURE then
+			self.storage.gameHasTreasure = true
+			break
 		end
-		
-		self.storage.currentFloorSpawnChance = nil
-
-		self:updatePlanetariumChance();
 	end
+	
+	self.storage.currentFloorSpawnChance = nil
+
+	self:updatePlanetariumChance();
 
 	--check char
 	self:updateCheck();

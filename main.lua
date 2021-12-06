@@ -117,7 +117,7 @@ function mod:shouldDeHook()
 		not self.storage.gameHasTreasure,
 		not Game():GetHUD():IsVisible(),
 		Game():GetRoom():GetType() == RoomType.ROOM_DUNGEON and Game():GetLevel():GetAbsoluteStage() == LevelStage.STAGE8, --beast fight
-		Game().Difficulty >= Difficulty.DIFFICULTY_GREED, --should be both greed and greedier
+		Game():IsGreedMode(),
 		Game():GetSeeds():HasSeedEffect(SeedEffect.SEED_NO_HUD)
 	}
 

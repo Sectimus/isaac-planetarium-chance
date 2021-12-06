@@ -63,8 +63,6 @@ function mod:init(continued)
 
 	self:updatePlanetariumChance();
 
-	--check char
-	self:updateCheck();
 	self:updatePosition();
 
 	self.hudSprite = Sprite()
@@ -80,11 +78,10 @@ end
 -- update on new level
 function mod:updatePlanetariumChance()
 	if mod:shouldDeHook() then return end
+	
+	local level = Game():GetLevel()
  
 	self.storage.previousFloorSpawnChance = self.storage.currentFloorSpawnChance
-	local game = Game();
-	local level = game:GetLevel();
-	local stage = level:GetStage();
 	
 	self.storage.currentFloorSpawnChance = level:GetPlanetariumChance()
 	
@@ -95,8 +92,7 @@ function mod:updatePlanetariumChance()
 		self.storage.currentFloorSpawnChance = 0;
 	end
 	
-	--Set to 0 during the Ascent
-	if level:IsAscent() then
+	if level:IsAscent() or Game():IsGreedMode() or not self.storage.gameHasTreasure then
 		self.storage.currentFloorSpawnChance = 0
 	end
 		
@@ -114,37 +110,37 @@ function mod:shouldDeHook()
 	local reqs = {
 		not self.initialized,
 		not Options.FoundHUD,
-		not self.storage.gameHasTreasure,
 		not Game():GetHUD():IsVisible(),
 		Game():GetRoom():GetType() == RoomType.ROOM_DUNGEON and Game():GetLevel():GetAbsoluteStage() == LevelStage.STAGE8, --beast fight
-		Game():IsGreedMode(),
 		Game():GetSeeds():HasSeedEffect(SeedEffect.SEED_NO_HUD)
 	}
 
-	return reqs[1] or reqs[2] or reqs[3] or reqs[4] or reqs[5] or reqs[6] or reqs[7]
+	return reqs[1] or reqs[2] or reqs[3] or reqs[4] or reqs[5]
 end
 
---This callback is called 30 times per second. It will not be called, when its paused (for example on screentransitions or on the pause menu).
---Base coords are set here, they will be modified by hudoffset on another callback
---Multi stat display for coop only shows 2 lots of stats
 function mod:updatePosition()
 	self.coords = Vector(0, 185)
-	--check for char differences (any player is a char with a different offset)
-
-	for i = 1, #self.storage.character do
-		if self.storage.character[i] == PlayerType.PLAYER_BETHANY or self.storage.character[i] == PlayerType.PLAYER_BETHANY_B then 
+	
+	for p = 1, Game():GetNumPlayers() do
+		local playerType = Isaac.GetPlayer(p-1):GetPlayerType()
+		if playerType == PlayerType.PLAYER_BETHANY or playerType == PlayerType.PLAYER_BETHANY_B then 
 			self.coords = self.coords + Vector(0, 9)
-			break;
-		elseif self.storage.character[i] == PlayerType.PLAYER_THESOUL_B then 
-			table.remove(self.storage.character, i)
-			break;
-		elseif self.storage.character[i] == PlayerType.PLAYER_JACOB then --Jacob always has Esau so no need to check for Esau
+			break
+		elseif playerType == PlayerType.PLAYER_JACOB then --Jacob always has Esau so no need to check for Esau
 			self.coords = self.coords + Vector(0, 14)
-			break;
+			break
 		end
 	end
-	--two sets of stats are displayed on multiplayer
-	if #self.storage.character > 1 then
+	
+	--check for co-op babies and t soul since they dont add stats
+	local realPlayers = Game():GetNumPlayers()
+	for p = 1, Game():GetNumPlayers() do
+		local player = Game():GetPlayer(p)
+		if player:GetBabySkin() ~= -1 or player:GetPlayerType() == PlayerType.PLAYER_THESOUL_B then
+			realPlayers = realPlayers - 1
+		end
+	end
+	if realPlayers > 1 then
 		self.coords = self.coords + Vector(0, 16)
 	end
 
@@ -159,36 +155,18 @@ function mod:updatePosition()
 	self.coords = self.coords + (Options.HUDOffset * Vector(20, 12))
 end
 
---checks if char has been changed
 function mod:updateCheck()
-	local updatePos = false;
-	if self.storage.character == nil or self.storage.character == 0 then self.storage.character = {} end
-
-	local activePlayers = Game():GetNumPlayers()
-	for p = 1, activePlayers do
-		--remove babies as they do not have stats. 
-		local isBaby = Game():GetPlayer(p):GetBabySkin() ~= -1
-		if isBaby then
-			activePlayers = activePlayers-1
-		end
-	end
-
-	for p = 1, activePlayers do
-		local playertype = Isaac.GetPlayer(p-1):GetPlayerType();
-		if not (self.storage.character[p] == playertype) then
-			self.storage.character[p] = playertype
-			updatePos = true;
-		end
-	end
-
-	local missingPlayers = 4 - activePlayers
-
-	for p=1, missingPlayers do
-		if(self.storage.character[activePlayers+p]) then
-			table.remove(self.storage.character, activePlayers+p)
-		end
-	end
+	local updatePos = false
 	
+	local activePlayers = Game():GetNumPlayers()
+	
+	for p = 1, activePlayers do
+		local player = Isaac.GetPlayer(p-1)
+		if DidPlayerCharacterJustChange(player) then
+			updatePos = true
+		end
+	end
+
 	if self.storage.hudoffset ~= Options.HUDOffset then
 		updatePos = true
 		self.storage.hudoffset = Options.HUDOffset
@@ -219,56 +197,35 @@ function log(text)
 	Isaac.DebugString(tostring(text))
 end
 
-function GetPlayers(functionCheck, ...)
-
-	local args = {...}
-	local players = {}
-	
-	local game = Game()
-	
-	for i=1, game:GetNumPlayers() do
-	
-		local player = Isaac.GetPlayer(i-1)
-		
-		local argsPassed = true
-		
-		if type(functionCheck) == "function" then
-		
-			for j=1, #args do
-			
-				if args[j] == "player" then
-					args[j] = player
-				elseif args[j] == "currentPlayer" then
-					args[j] = i
-				end
-				
-			end
-			
-			if not functionCheck(table.unpack(args)) then
-			
-				argsPassed = false
-				
-			end
-			
-		end
-		
-		if argsPassed then
-			players[#players+1] = player
-		end
-		
-	end
-	
-	return players
-	
-end
-
 function EveryoneHasCollectibleNum(collectibleID)
 	local collectibleCount = 0
-	for _, player in pairs(GetPlayers()) do
+	for p = 1, Game():GetNumPlayers() do
+		local player = Isaac.GetPlayer(p-1)
 		collectibleCount = collectibleCount + player:GetCollectibleNum(collectibleID)
 	end
 	return collectibleCount
 end
+
+--character just change
+function DidPlayerCharacterJustChange(player)
+	local data = player:GetData()
+	if data.playerTypeJustChanged then
+		return true
+	end
+	return false
+end
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
+	local data = player:GetData()
+	local playerType = player:GetPlayerType()
+	if not data.lastPlayerType then
+		data.lastPlayerType = playerType
+	end
+	data.playerTypeJustChanged = false
+	if data.lastPlayerType ~= playerType then
+		data.playerTypeJustChanged = true
+	end
+	data.lastPlayerType = playerType
+end)
 
 --init self storage from mod namespace before any callbacks by blocking.
 function mod:initStore()

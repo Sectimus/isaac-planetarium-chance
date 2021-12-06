@@ -285,6 +285,8 @@ mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.exit);
 mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onRender);
 --mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.test)
 
+mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.updateCheck)
+
 --check for R Key use and run init if used
 mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.rKeyCheck, CollectibleType.COLLECTIBLE_R_KEY);
 

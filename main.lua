@@ -162,7 +162,7 @@ function mod:updateCheck()
 	
 	for p = 1, activePlayers do
 		local player = Isaac.GetPlayer(p-1)
-		if DidPlayerCharacterJustChange(player) then
+		if player.FrameCount == 1 or DidPlayerCharacterJustChange(player) then
 			updatePos = true
 		end
 	end

@@ -234,17 +234,24 @@ function mod:initStore()
 end
 mod:initStore();
 
-mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.updatePlanetariumChance);
+mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.updatePlanetariumChance)
 
-mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.init);
-mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.exit);
+mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.init)
+mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.exit)
 
-mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onRender);
+mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onRender)
 --mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.test)
 
 mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.updateCheck)
 
 --check for R Key use and run init if used
-mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.rKeyCheck, CollectibleType.COLLECTIBLE_R_KEY);
+mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.rKeyCheck, CollectibleType.COLLECTIBLE_R_KEY)
+
+--Custom Shader Fix by AgentCucco
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, function()
+	if #Isaac.FindByType(EntityType.ENTITY_PLAYER) == 0 then
+		Isaac.ExecuteCommand("reloadshaders")
+	end
+end)
 
 

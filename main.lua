@@ -56,7 +56,6 @@ function mod:init(continued)
 				local room = rooms:Get(i).Data
 				if room.Type == RoomType.ROOM_TREASURE then -- check if there is a treasure room on the floor since planetariums require treasure rooms in the game to spawn (for challenges)
 					self.storage.canPlanetariumsSpawn = true
-					print("Planetariums can spawn in this run")
 					break
 				end
 			end
@@ -200,10 +199,6 @@ end
 -- Custom Log Command
 function log(text)
 	Isaac.DebugString(tostring(text))
-end
-
-function GetMaxCollectibleID()
-    return Isaac.GetItemConfig():GetCollectibles().Size -1
 end
 
 function GetMaxTrinketID()

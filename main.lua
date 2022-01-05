@@ -48,16 +48,21 @@ function mod:exit()
 end
 
 function mod:init(continued)
-	--challenges can still spawn planetariums if they can spawn treasure rooms, so detect if theres a treasure room on the first floor.
-	self.storage.gameHasTreasure = nil
-	local rooms = Game():GetLevel():GetRooms()
-	for i = 0, rooms.Size - 1 do
-		local room = rooms:Get(i).Data
-		if room.Type == RoomType.ROOM_TREASURE then
-			self.storage.gameHasTreasure = true
-			break
+	self.storage.canPlanetariumsSpawn = nil
+	if isTrinketUnlocked(TrinketType.TRINKET_TELESCOPE_LENS) then -- check if telescope lens is unlocked, since it can be used to check if planetariums in general are unlocked
+		if not Game():IsGreedMode() then -- check greed mode since planetariums cannot spawn in greed mode
+			local rooms = Game():GetLevel():GetRooms()
+			for i = 0, rooms.Size - 1 do
+				local room = rooms:Get(i).Data
+				if room.Type == RoomType.ROOM_TREASURE then -- check if there is a treasure room on the floor since planetariums require treasure rooms in the game to spawn (for challenges)
+					self.storage.canPlanetariumsSpawn = true
+					print("Planetariums can spawn in this run")
+					break
+				end
+			end
 		end
 	end
+
 	
 	self.storage.currentFloorSpawnChance = nil
 
@@ -92,7 +97,7 @@ function mod:updatePlanetariumChance()
 		self.storage.currentFloorSpawnChance = 0;
 	end
 	
-	if level:IsAscent() or Game():IsGreedMode() or not self.storage.gameHasTreasure then
+	if level:IsAscent() or not self.storage.canPlanetariumsSpawn then
 		self.storage.currentFloorSpawnChance = 0
 	end
 		
@@ -197,6 +202,14 @@ function log(text)
 	Isaac.DebugString(tostring(text))
 end
 
+function GetMaxCollectibleID()
+    return Isaac.GetItemConfig():GetCollectibles().Size -1
+end
+
+function GetMaxTrinketID()
+    return Isaac.GetItemConfig():GetTrinkets().Size -1
+end
+
 function EveryoneHasCollectibleNum(collectibleID)
 	local collectibleCount = 0
 	for p = 1, Game():GetNumPlayers() do
@@ -226,6 +239,25 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
 	end
 	data.lastPlayerType = playerType
 end)
+
+function isTrinketUnlocked(trinketID)
+	local itemPool = Game():GetItemPool()
+	for i= 1, GetMaxTrinketID() do
+		if Isaac.GetItemConfig():GetTrinket(i) and i ~= trinketID then
+			itemPool:RemoveTrinket(i)
+		end
+	end
+	local isUnlocked = false
+	for i = 0,1 do -- some samples to make sure
+		local trinID = itemPool:GetTrinket(false)
+		if trinID == trinketID then
+			isUnlocked = true
+			break
+		end
+	end
+	itemPool:ResetTrinkets()
+	return isUnlocked
+end
 
 --init self storage from mod namespace before any callbacks by blocking.
 function mod:initStore()

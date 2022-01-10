@@ -49,19 +49,16 @@ end
 
 function mod:init(continued)
 	self.storage.canPlanetariumsSpawn = nil
-	if isTrinketUnlocked(TrinketType.TRINKET_TELESCOPE_LENS) then -- check if telescope lens is unlocked, since it can be used to check if planetariums in general are unlocked
-		if not Game():IsGreedMode() then -- check greed mode since planetariums cannot spawn in greed mode
-			local rooms = Game():GetLevel():GetRooms()
-			for i = 0, rooms.Size - 1 do
-				local room = rooms:Get(i).Data
-				if room.Type == RoomType.ROOM_TREASURE then -- check if there is a treasure room on the floor since planetariums require treasure rooms in the game to spawn (for challenges)
-					self.storage.canPlanetariumsSpawn = true
-					break
-				end
+	if not Game():IsGreedMode() then -- check greed mode since planetariums cannot spawn in greed mode
+		local rooms = Game():GetLevel():GetRooms()
+		for i = 0, rooms.Size - 1 do
+			local room = rooms:Get(i).Data
+			if room.Type == RoomType.ROOM_TREASURE then -- check if there is a treasure room on the floor since planetariums require treasure rooms in the game to spawn (for challenges)
+				self.storage.canPlanetariumsSpawn = true
+				break
 			end
 		end
 	end
-
 	
 	self.storage.currentFloorSpawnChance = nil
 
@@ -96,7 +93,7 @@ function mod:updatePlanetariumChance()
 		self.storage.currentFloorSpawnChance = 0;
 	end
 	
-	if level:IsAscent() or not self.storage.canPlanetariumsSpawn then
+	if level:IsAscent() or not self.storage.canPlanetariumsSpawn or not self.storage.arePlanetariumsUnlocked then
 		self.storage.currentFloorSpawnChance = 0
 	end
 		
@@ -190,6 +187,13 @@ function mod:updateCheck()
 	end
 end
 
+function mod:unlockCheck(player)
+	self.storage.arePlanetariumsUnlocked = nil
+	if isTrinketUnlocked(TrinketType.TRINKET_TELESCOPE_LENS) then -- check if telescope lens is unlocked, since it can be used to check if planetariums in general are unlocked
+		self.storage.arePlanetariumsUnlocked = true
+	end
+end
+
 function mod:rKeyCheck()
 	mod:init(false) --this should be good enough
 end
@@ -271,7 +275,7 @@ mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onRender)
 
 mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.updateCheck)
 
---check for R Key use and run init if used
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, mod.unlockCheck)
 mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.rKeyCheck, CollectibleType.COLLECTIBLE_R_KEY)
 
 --Custom Shader Fix by AgentCucco

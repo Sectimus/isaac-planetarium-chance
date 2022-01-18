@@ -189,14 +189,14 @@ end
 
 function mod:unlockCheck(player)
 	self.storage.arePlanetariumsUnlocked = nil
-	if game:GetFrameCount() == 0 then
+	if Game():GetFrameCount() == 0 then
 		if isTrinketUnlocked(TrinketType.TRINKET_TELESCOPE_LENS) then -- check if telescope lens is unlocked, since it can be used to check if planetariums in general are unlocked
 			self.storage.arePlanetariumsUnlocked = true
 		end
 	end
 end
 
-function mod:rKeyCheck()
+function mod:rKeyCheck() 
 	mod:init(false) --this should be good enough
 end
 

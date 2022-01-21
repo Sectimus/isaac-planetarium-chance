@@ -1,8 +1,7 @@
 PlanetariumChance = RegisterMod("Planetarium Chance", 1)
 local mod = PlanetariumChance
-local json = require("json")
 
-mod.initialized=false;
+mod.initialized=false
 
 function mod:onRender(shaderName)
 	if shaderName ~= "UI_DrawPlanetariumChance_DummyShader" then return end
@@ -196,7 +195,7 @@ function mod:unlockCheck(player)
 	end
 end
 
-function mod:rKeyCheck() 
+function mod:rKeyCheck()
 	mod:init(false) --this should be good enough
 end
 

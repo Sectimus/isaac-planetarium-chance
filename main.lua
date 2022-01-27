@@ -189,7 +189,9 @@ end
 function mod:unlockCheck(player)
 	self.storage.arePlanetariumsUnlocked = nil
 	if Game():GetFrameCount() == 0 then
-		if isTrinketUnlocked(TrinketType.TRINKET_TELESCOPE_LENS) then -- check if telescope lens is unlocked, since it can be used to check if planetariums in general are unlocked
+		local itemPool = Game():GetItemPool()
+		if itemPool:RemoveTrinket(TrinketType.TRINKET_TELESCOPE_LENS) then -- removing trinkets from the pool returns true only if the trinket is unlocked, which can be used to check for if the planetarium is unlocked as well
+			itemPool:ResetTrinkets() -- reset trinkets so you can actually get telescope lens in the game still
 			self.storage.arePlanetariumsUnlocked = true
 		end
 	end
@@ -239,25 +241,6 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
 	end
 	data.lastPlayerType = playerType
 end)
-
-function isTrinketUnlocked(trinketID)
-	local itemPool = Game():GetItemPool()
-	for i= 1, GetMaxTrinketID() do
-		if Isaac.GetItemConfig():GetTrinket(i) and i ~= trinketID then
-			itemPool:RemoveTrinket(i)
-		end
-	end
-	local isUnlocked = false
-	for i = 0,1 do -- some samples to make sure
-		local trinID = itemPool:GetTrinket(false)
-		if trinID == trinketID then
-			isUnlocked = true
-			break
-		end
-	end
-	itemPool:ResetTrinkets()
-	return isUnlocked
-end
 
 --init self storage from mod namespace before any callbacks by blocking.
 function mod:initStore()

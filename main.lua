@@ -190,8 +190,7 @@ function mod:unlockCheck(player)
 	self.storage.arePlanetariumsUnlocked = nil
 	if Game():GetFrameCount() == 0 then
 		local itemPool = Game():GetItemPool()
-		if itemPool:RemoveTrinket(TrinketType.TRINKET_TELESCOPE_LENS) then -- removing trinkets from the pool returns true only if the trinket is unlocked, which can be used to check for if the planetarium is unlocked as well
-			itemPool:ResetTrinkets() -- reset trinkets so you can actually get telescope lens in the game still
+		if itemPool:RemoveTrinket(Isaac.GetTrinketIdByName("Planetarium Unlock Checker")) then
 			self.storage.arePlanetariumsUnlocked = true
 		end
 	end

@@ -58,7 +58,7 @@ end
 
 function mod:init(continued)
 	if not continued then
-		self.storage.canPlanetariumsSpawn = nil
+		self.storage.canPlanetariumsSpawn = false
 		if Game():GetItemPool():RemoveTrinket(achievementTrinket) then -- check if helper trinket is available to know if planetariums are unlocked
 			if not Game():IsGreedMode() then -- check greed mode since planetariums cannot spawn in greed mode
 				local rooms = Game():GetLevel():GetRooms()

@@ -58,14 +58,14 @@ end
 
 function mod:init(continued)
 	if not continued then
-		self.storage.canPlanetariumsSpawn = false
+		self.storage.canPlanetariumsSpawn = 0
 		if Game():GetItemPool():RemoveTrinket(achievementTrinket) then -- check if helper trinket is available to know if planetariums are unlocked
 			if not Game():IsGreedMode() then -- check greed mode since planetariums cannot spawn in greed mode
 				local rooms = Game():GetLevel():GetRooms()
 				for i = 0, rooms.Size - 1 do
 					local room = rooms:Get(i).Data
 					if room.Type == RoomType.ROOM_TREASURE then -- check if there is a treasure room on the floor since planetariums require treasure rooms in the game to spawn (for challenges)
-						self.storage.canPlanetariumsSpawn = true
+						self.storage.canPlanetariumsSpawn = 1
 						break
 					end
 				end
@@ -73,7 +73,7 @@ function mod:init(continued)
 		end
 		mod:SaveData(json.encode(self.storage.canPlanetariumsSpawn)) -- this is the only thing that needs to be saved, everything else can be recalculated
 	elseif continued then
-		self.storage.canPlanetariumsSpawn = json.decode(mod:LoadData()) or true
+		self.storage.canPlanetariumsSpawn = json.decode(mod:LoadData()) or 1
 	end
 	
 	self.storage.currentFloorSpawnChance = nil
@@ -109,7 +109,7 @@ function mod:updatePlanetariumChance()
 		self.storage.currentFloorSpawnChance = 0;
 	end
 	
-	if level:IsAscent() or not self.storage.canPlanetariumsSpawn then
+	if level:IsAscent() or self.storage.canPlanetariumsSpawn == 0 then
 		self.storage.currentFloorSpawnChance = 0
 	end
 		

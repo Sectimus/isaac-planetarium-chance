@@ -73,7 +73,7 @@ function mod:init(continued)
 		end
 		mod:SaveData(json.encode(self.storage.canPlanetariumsSpawn)) -- this is the only thing that needs to be saved, everything else can be recalculated
 	elseif continued then
-		self.storage.canPlanetariumsSpawn = json.decode(mod:LoadData())
+		self.storage.canPlanetariumsSpawn = json.decode(mod:LoadData()) or true
 	end
 	
 	self.storage.currentFloorSpawnChance = nil

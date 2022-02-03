@@ -64,7 +64,7 @@ function mod:preventHelperTrinketSpawn(pickup)
 end
 
 function mod:preventHelperTrinketPickup(player)
-	if player:HasTrinket(achievementTrinket) then
+	if player:HasTrinket(achievementTrinket, true) then
 		player:TryRemoveTrinket(achievementTrinket)
 		player:AddTrinket(Game():GetItemPool():GetTrinket())
 	end

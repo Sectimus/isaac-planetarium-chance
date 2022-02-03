@@ -280,6 +280,7 @@ mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onRender)
 mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.updateCheck)
 
 mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT, mod.preventHelperTrinketSpawn, PickupVariant.PICKUP_TRINKET)
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.preventHelperTrinkerPickup)
 mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.rKeyCheck, CollectibleType.COLLECTIBLE_R_KEY)
 
 --Custom Shader Fix by AgentCucco

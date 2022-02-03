@@ -63,6 +63,13 @@ function mod:preventHelperTrinketSpawn(pickup)
 	end
 end
 
+function mod:preventHelperTrinkerPickup(player)
+	if player:HasTrinket(achievementTrinket) then
+		player:TryRemoveTrinket(achievementTrinket)
+		player:AddTrinket(Game():GetItemPool():GetTrinket())
+	end
+end
+
 function mod:init(continued)
 	if not continued then
 		self.storage.canPlanetariumsSpawn = 0

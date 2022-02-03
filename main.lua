@@ -63,7 +63,7 @@ function mod:preventHelperTrinketSpawn(pickup)
 	end
 end
 
-function mod:preventHelperTrinkerPickup(player)
+function mod:preventHelperTrinketPickup(player)
 	if player:HasTrinket(achievementTrinket) then
 		player:TryRemoveTrinket(achievementTrinket)
 		player:AddTrinket(Game():GetItemPool():GetTrinket())
@@ -280,7 +280,7 @@ mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onRender)
 mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.updateCheck)
 
 mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT, mod.preventHelperTrinketSpawn, PickupVariant.PICKUP_TRINKET)
-mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.preventHelperTrinkerPickup)
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.preventHelperTrinketPickup)
 mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.rKeyCheck, CollectibleType.COLLECTIBLE_R_KEY)
 
 --Custom Shader Fix by AgentCucco

@@ -63,6 +63,7 @@ function mod:preventHelperTrinketSpawn(pickup)
 	end
 end
 
+-- check if you start with the helper trinket and replace it, mostly for eden
 function mod:preventHelperTrinketPickup(player)
 	if player:HasTrinket(achievementTrinket, true) then
 		player:TryRemoveTrinket(achievementTrinket)

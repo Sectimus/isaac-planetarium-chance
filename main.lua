@@ -56,6 +56,21 @@ if Encyclopedia then
 	})
 end
 
+-- if the helper trinket somehow does spawn, replace it with a random trinket from the pool
+function mod:preventHelperTrinketSpawn(pickup)
+	if pickup.SubType == achievementTrinket then
+		pickup:Morph(pickup.Type, pickup.Variant, Game():GetItemPool():GetTrinket())
+	end
+end
+
+-- check if you start with the helper trinket and replace it, mostly for eden
+function mod:preventHelperTrinketPickup(player)
+	if player:HasTrinket(achievementTrinket, true) then
+		player:TryRemoveTrinket(achievementTrinket)
+		player:AddTrinket(Game():GetItemPool():GetTrinket())
+	end
+end
+
 function mod:init(continued)
 	if not continued then
 		self.storage.canPlanetariumsSpawn = 0
@@ -265,6 +280,8 @@ mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onRender)
 
 mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.updateCheck)
 
+mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT, mod.preventHelperTrinketSpawn, PickupVariant.PICKUP_TRINKET)
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.preventHelperTrinketPickup)
 mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.rKeyCheck, CollectibleType.COLLECTIBLE_R_KEY)
 
 --Custom Shader Fix by AgentCucco

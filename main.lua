@@ -4,10 +4,19 @@ local json = require("json")
 
 mod.initialized=false
 
+local NoTrophySeeds = {
+	SeedEffect.SEED_INFINITE_BASEMENT, SeedEffect.SEED_PICKUPS_SLIDE, SeedEffect.SEED_ITEMS_COST_MONEY, SeedEffect.SEED_PACIFIST, SeedEffect.SEED_ENEMIES_RESPAWN, 
+	SeedEffect.SEED_POOP_TRAIL, SeedEffect.SEED_INVINCIBLE, SeedEffect.SEED_KIDS_MODE, SeedEffect.SEED_PERMANENT_CURSE_LABYRINTH, SeedEffect.SEED_PREVENT_CURSE_DARKNESS, 
+	SeedEffect.SEED_PREVENT_CURSE_LABYRINTH, SeedEffect.SEED_PREVENT_CURSE_LOST, SeedEffect.SEED_PREVENT_CURSE_UNKNOWN, SeedEffect.SEED_PREVENT_CURSE_MAZE, 
+	SeedEffect.SEED_PREVENT_CURSE_BLIND, SeedEffect.SEED_PREVENT_ALL_CURSES, SeedEffect.SEED_GLOWING_TEARS, SeedEffect.SEED_ALL_CHAMPIONS, SeedEffect.SEED_ALWAYS_CHARMED, 
+	SeedEffect.SEED_ALWAYS_CONFUSED, SeedEffect.SEED_ALWAYS_AFRAID, SeedEffect.SEED_ALWAYS_ALTERNATING_FEAR, SeedEffect.SEED_ALWAYS_CHARMED_AND_AFRAID, SeedEffect.SEED_SUPER_HOT
+	}
+
+
 function mod:onRender(shaderName)
 	if shaderName ~= "UI_DrawPlanetariumChance_DummyShader" then return end
 	if mod:shouldDeHook() then return end
-
+	
 	--check for notch update on pause
 	if Game():IsPaused() then mod:updateCheck() end
 
@@ -33,16 +42,18 @@ function mod:onRender(shaderName)
 		end
 		local difference = self.storage.currentFloorSpawnChance - self.storage.previousFloorSpawnChance;
 		local differenceOutput = string.format("%.1f%%", difference)
+		local slide = TextAcceleration((2.9 - self.fontalpha)/(2 * 0.01))
 		if difference>0 then --positive difference
-			self.font:DrawString("+"..differenceOutput, textCoords.X+16+self.font:GetStringWidth(valueOutput)+3, textCoords.Y, KColor(0,1,0,alpha),0,true)
+			self.font:DrawString("+"..differenceOutput, textCoords.X + 46, textCoords.Y, KColor(0,1,0,alpha),0,true)
 		elseif difference<0 then --negative difference
-			self.font:DrawString(differenceOutput, textCoords.X+16+self.font:GetStringWidth(valueOutput)+3, textCoords.Y, KColor(1,0,0,alpha),0,true)
+			self.font:DrawString(differenceOutput, textCoords.X + 46, textCoords.Y, KColor(1,0,0,alpha),0,true)
 		end
 		self.fontalpha = self.fontalpha-0.01
 	end
 end
 
 function mod:exit()
+	self.initialized = false
 	if mod:shouldDeHook() then return end
 	--TODO cleanup sprite
 end
@@ -109,7 +120,6 @@ end
 
 -- update on new level
 function mod:updatePlanetariumChance()
-	if mod:shouldDeHook() then return end
 	
 	local level = Game():GetLevel()
  
@@ -118,8 +128,8 @@ function mod:updatePlanetariumChance()
 	self.storage.currentFloorSpawnChance = level:GetPlanetariumChance()
 	
 	--Planetarium chance can never be more than 100%. (technically 99.9% as there is never a 100% guarantee)
-	if self.storage.currentFloorSpawnChance>0.999 then
-		self.storage.currentFloorSpawnChance = 0.999;
+	if self.storage.currentFloorSpawnChance>1 then
+		self.storage.currentFloorSpawnChance = 1;
 	elseif self.storage.currentFloorSpawnChance<0 then 
 		self.storage.currentFloorSpawnChance = 0;
 	end
@@ -131,9 +141,9 @@ function mod:updatePlanetariumChance()
 	--make absolute
 	self.storage.currentFloorSpawnChance = self.storage.currentFloorSpawnChance * 100
 
-	--don't display popup if there is no change
-	if self.storage.previousFloorSpawnChance and (self.storage.currentFloorSpawnChance - self.storage.previousFloorSpawnChance ) then
-		self.fontalpha = 3
+	--don't display popup if there is no change or if run new/continued
+	if self.storage.previousFloorSpawnChance and (self.storage.currentFloorSpawnChance ~= self.storage.previousFloorSpawnChance ) then
+		self.fontalpha = 2.9
 	end
 end
 
@@ -151,36 +161,47 @@ function mod:shouldDeHook()
 end
 
 function mod:updatePosition()
-	self.coords = Vector(0, 185)
+	--Updates position of Chance Stat
+	local RedHeartShift = false
+	local SoulHeartShift = false
+	local PoopShift = false
+	local BombShift = false
+	local TrueCoopShift = (Game():GetNumPlayers() > 1)
+
+	self.coords = Vector(0, 185) - Vector(0, 9) --Subtraction needed to correct for either bomb shift or poop shift
 	
 	for p = 1, Game():GetNumPlayers() do
+		local player = Game():GetPlayer(p-1)
 		local playerType = Isaac.GetPlayer(p-1):GetPlayerType()
-		if playerType == PlayerType.PLAYER_BETHANY or playerType == PlayerType.PLAYER_BETHANY_B then 
-			self.coords = self.coords + Vector(0, 9)
-			break
-		elseif playerType == PlayerType.PLAYER_JACOB then --Jacob always has Esau so no need to check for Esau
+		if p == 1 and playerType == PlayerType.PLAYER_JACOB then --Jacob always has Esau so no need to check for Esau
 			self.coords = self.coords + Vector(0, 14)
-			break
+		elseif playerType == PlayerType.PLAYER_BETHANY and not SoulHeartShift then -- Shifts Stats because of Soul Heart Counter
+			self.coords = self.coords + Vector(0, 9)
+			SoulHeartShift = true
+		elseif playerType == PlayerType.PLAYER_BETHANY_B and not RedHeartShift then -- Shifts Stats because of Red Heart Counter
+			self.coords = self.coords + Vector(0, 9)
+			RedHeartShift = true
+		elseif playerType == PlayerType.PLAYER_XXX_B and not PoopShift then -- Shifts Stats because of Poop Counter
+			self.coords = self.coords + Vector(0, 9)
+			PoopShift = true
 		end
-	end
-	
-	--check for co-op babies and t soul since they dont add stats
-	local realPlayers = Game():GetNumPlayers()
-	for p = 1, Game():GetNumPlayers() do
-		local player = Game():GetPlayer(p)
-		if player:GetBabySkin() ~= -1 or player:GetPlayerType() == PlayerType.PLAYER_THESOUL_B then
-			realPlayers = realPlayers - 1
+		if playerType ~= PlayerType.PLAYER_XXX_B and player:GetBabySkin() == -1 and not BombShift then -- Shifts Stats because of Bomb Counter, only needed if Tainted XXX plays with anyone else
+			self.coords = self.coords + Vector(0, 9)
+			BombShift = true
 		end
-	end
-	if realPlayers > 1 then
-		self.coords = self.coords + Vector(0, 16)
+		-- Ignores Coop Babies, Tainted Forgottens Soul, and Temporary players like Strawman or Soul of Forgotten/Jacob&Esau. Otherwise Shift to show 2nd player stats. Includes Esau
+		if TrueCoopShift and  p > 1 and player:GetBabySkin() == -1 and playerType ~= PlayerType.PLAYER_THESOUL_B and player.Parent == nil then
+			self.coords = self.coords + Vector(0, 16)
+			TrueCoopShift = false
+		end
 	end
 
 	if EveryoneHasCollectibleNum(CollectibleType.COLLECTIBLE_DUALITY) > 0 then
 		self.coords = self.coords + Vector(0, -12)
 	end
 
-	if Game().Difficulty == Difficulty.DIFFICULTY_NORMAL and Isaac.GetChallenge() == 0 then
+	--Checks if Normal Mode and not Seeded/Challenge/Daily; Seeded/Challenge have no achievements logo, and Daily Challenge has destination logo.
+	if Game().Difficulty == Difficulty.DIFFICULTY_NORMAL and not Game():GetSeeds():IsCustomRun() and not SeedBlocksAchievements() then
 		self.coords = self.coords + Vector(0, -16)
 	end
 
@@ -199,6 +220,11 @@ function mod:updateCheck()
 		end
 	end
 
+	if self.storage.numplayers ~= activePlayers then
+		updatePos = true
+		self.storage.numplayers = activePlayers
+	end
+	
 	if self.storage.hudoffset ~= Options.HUDOffset then
 		updatePos = true
 		self.storage.hudoffset = Options.HUDOffset
@@ -212,7 +238,19 @@ function mod:updateCheck()
 		updatePos = true;
 		self.storage.hadDuality = false
 	end
-			
+		
+	--Was a Victory Lap Completed, Runs completed on Normal Difficulty Will switch to HARD upon start of a Victory Lap
+	if self.storage.VictoryLap ~= Game():GetVictoryLap() then
+		updatePos = true
+		self.storage.VictoryLap = Game():GetVictoryLap()
+	end
+	
+	--Certain Seed Effects block achievements
+	if self.storage.NumSeedEffects ~= Game():GetSeeds():CountSeedEffects() then
+		updatePos = true
+		self.storage.NumSeedEffects = Game():GetSeeds():CountSeedEffects()
+	end
+		
 	if updatePos then
 		self:updatePosition();
 	end
@@ -250,6 +288,7 @@ function DidPlayerCharacterJustChange(player)
 	end
 	return false
 end
+
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
 	local data = player:GetData()
 	local playerType = player:GetPlayerType()
@@ -263,6 +302,25 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
 	data.lastPlayerType = playerType
 end)
 
+function SeedBlocksAchievements()
+	local seed = Game():GetSeeds()
+	for _,effect in pairs(NoTrophySeeds) do
+		if seed:HasSeedEffect(effect) then
+			return true
+		end
+	end
+	return false
+end
+
+function TextAcceleration(frame) --Overfit distance profile for difference text slide in
+	frame = frame - 14
+	if frame > 0 then
+		return 0
+	end
+	return -(15.1/(13*13))*frame*frame
+end
+
+
 --init self storage from mod namespace before any callbacks by blocking.
 function mod:initStore()
 	self.storage = {} 
@@ -271,7 +329,7 @@ end
 mod:initStore();
 
 mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.updatePlanetariumChance)
-
+	
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.init)
 mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.exit)
 
@@ -282,7 +340,7 @@ mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.updateCheck)
 
 mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT, mod.preventHelperTrinketSpawn, PickupVariant.PICKUP_TRINKET)
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.preventHelperTrinketPickup)
-mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.rKeyCheck, CollectibleType.COLLECTIBLE_R_KEY)
+--mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.rKeyCheck, CollectibleType.COLLECTIBLE_R_KEY)
 
 --Custom Shader Fix by AgentCucco
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, function()

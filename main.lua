@@ -190,7 +190,7 @@ function mod:updatePosition()
 		
 		-- I have to do these miniscule shifts to get it to look right. The initial algorithm looks clean, but there's something I'm missing...
 		if ShiftCount == 1 then
-			self.coords = self.coords + Vector(0, -1)..
+			self.coords = self.coords + Vector(0, -1)
 		end
 		if ShiftCount == 3 then
 			self.coords = self.coords + Vector(0, 1)

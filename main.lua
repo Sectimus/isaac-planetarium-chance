@@ -17,18 +17,17 @@ function mod:onRender(shaderName)
 	if shaderName ~= "UI_DrawPlanetariumChance_DummyShader" then return end
 	if mod:shouldDeHook() then return end
 	
-	--check for notch update on pause
-	if Game():IsPaused() then mod:updateCheck() end
-
+	mod:updateCheck()
+	
 	--account for screenshake offset
-	local textCoords = self.coords+Game().ScreenShakeOffset;
+	local textCoords = self.coords + Game().ScreenShakeOffset
 	local valueOutput = string.format("%.1s%%", "?")
 	if self.storage.currentFloorSpawnChance then
 		valueOutput = string.format("%.1f%%", self.storage.currentFloorSpawnChance)
 	else
-		mod:updatePlanetariumChance();
+		mod:updatePlanetariumChance()
 	end
-	self.font:DrawString(valueOutput, textCoords.X+16, textCoords.Y, KColor(1,1,1,0.5),0,true)
+	self.font:DrawString(valueOutput, textCoords.X+16, textCoords.Y+1, KColor(1,1,1,0.5),0,true)
 	self.hudSprite:Render(self.coords, Vector(0,0), Vector(0,0))
 
 	--differential popup
@@ -40,13 +39,13 @@ function mod:onRender(shaderName)
 		if self.storage.previousFloorSpawnChance == nil then 
 			self.storage.previousFloorSpawnChance = self.storage.currentFloorSpawnChance
 		end
-		local difference = self.storage.currentFloorSpawnChance - self.storage.previousFloorSpawnChance;
+		local difference = self.storage.currentFloorSpawnChance - self.storage.previousFloorSpawnChance
 		local differenceOutput = string.format("%.1f%%", difference)
 		local slide = TextAcceleration((2.9 - self.fontalpha)/(2 * 0.01))
 		if difference>0 then --positive difference
-			self.font:DrawString("+"..differenceOutput, textCoords.X + 46, textCoords.Y, KColor(0,1,0,alpha),0,true)
+			self.font:DrawString("+"..differenceOutput, textCoords.X + 46 + slide, textCoords.Y+1, KColor(0,1,0,alpha),0,true)
 		elseif difference<0 then --negative difference
-			self.font:DrawString(differenceOutput, textCoords.X + 46, textCoords.Y, KColor(1,0,0,alpha),0,true)
+			self.font:DrawString(differenceOutput, textCoords.X + 46 + slide, textCoords.Y+1, KColor(1,0,0,alpha),0,true)
 		end
 		self.fontalpha = self.fontalpha-0.01
 	end
@@ -58,42 +57,16 @@ function mod:exit()
 	--TODO cleanup sprite
 end
 
-local achievementTrinket = Isaac.GetTrinketIdByName("Planetarium Unlock Checker")
--- hide helper trinket in Encyclopedia mod
-if Encyclopedia then
-	Encyclopedia.AddTrinket({
-		ID = achievementTrinket,
-		Hide = true,
-	})
-end
-
--- if the helper trinket somehow does spawn, replace it with a random trinket from the pool
-function mod:preventHelperTrinketSpawn(pickup)
-	if pickup.SubType == achievementTrinket then
-		pickup:Morph(pickup.Type, pickup.Variant, Game():GetItemPool():GetTrinket())
-	end
-end
-
--- check if you start with the helper trinket and replace it, mostly for eden
-function mod:preventHelperTrinketPickup(player)
-	if player:HasTrinket(achievementTrinket, true) then
-		player:TryRemoveTrinket(achievementTrinket)
-		player:AddTrinket(Game():GetItemPool():GetTrinket())
-	end
-end
-
 function mod:init(continued)
 	if not continued then
 		self.storage.canPlanetariumsSpawn = 0
-		if Game():GetItemPool():RemoveTrinket(achievementTrinket) then -- check if helper trinket is available to know if planetariums are unlocked
-			if not Game():IsGreedMode() then -- check greed mode since planetariums cannot spawn in greed mode
-				local rooms = Game():GetLevel():GetRooms()
-				for i = 0, rooms.Size - 1 do
-					local room = rooms:Get(i).Data
-					if room.Type == RoomType.ROOM_TREASURE then -- check if there is a treasure room on the floor since planetariums require treasure rooms in the game to spawn (for challenges)
-						self.storage.canPlanetariumsSpawn = 1
-						break
-					end
+		if not Game():IsGreedMode() then -- check greed mode since planetariums cannot spawn in greed mode
+			local rooms = Game():GetLevel():GetRooms()
+			for i = 0, rooms.Size - 1 do
+				local room = rooms:Get(i).Data
+				if room.Type == RoomType.ROOM_TREASURE then -- check if there is a treasure room on the floor since planetariums require treasure rooms in the game to spawn (for challenges)
+					self.storage.canPlanetariumsSpawn = 1
+					break
 				end
 			end
 		end
@@ -104,18 +77,18 @@ function mod:init(continued)
 	
 	self.storage.currentFloorSpawnChance = nil
 
-	self:updatePlanetariumChance();
+	self:updatePlanetariumChance()
 
-	self:updatePosition();
+	self:updatePosition()
 
 	self.hudSprite = Sprite()
 	self.hudSprite:Load("gfx/ui/hudstats2.anm2", true)
-	self.hudSprite.Color = Color(1,1,1,0.5);
+	self.hudSprite.Color = Color(1,1,1,0.5)
 	self.hudSprite:SetFrame("Idle", 8)
-	self.font = Font();
+	self.font = Font()
 	self.font:Load("font/luaminioutlined.fnt")
-
-	self.initialized = true;
+	
+	self.initialized = true
 end
 
 -- update on new level
@@ -127,11 +100,10 @@ function mod:updatePlanetariumChance()
 	
 	self.storage.currentFloorSpawnChance = level:GetPlanetariumChance()
 	
-	--Planetarium chance can never be more than 100%. (technically 99.9% as there is never a 100% guarantee)
 	if self.storage.currentFloorSpawnChance>1 then
-		self.storage.currentFloorSpawnChance = 1;
+		self.storage.currentFloorSpawnChance = 1
 	elseif self.storage.currentFloorSpawnChance<0 then 
-		self.storage.currentFloorSpawnChance = 0;
+		self.storage.currentFloorSpawnChance = 0
 	end
 	
 	if level:IsAscent() or self.storage.canPlanetariumsSpawn == 0 then
@@ -162,47 +134,89 @@ end
 
 function mod:updatePosition()
 	--Updates position of Chance Stat
+	local JacobShift = false
 	local RedHeartShift = false
 	local SoulHeartShift = false
-	local PoopShift = false
-	local BombShift = false
-	local TrueCoopShift = (Game():GetNumPlayers() > 1)
+	local DualityShift = false
+	
+	local TruePlayerCount = 1 -- there is always at least 1 player
+	local T_BlueBabyCount = 0
+	local ShiftCount = 0
 
-	self.coords = Vector(0, 185) - Vector(0, 9) --Subtraction needed to correct for either bomb shift or poop shift
+	self.coords = Vector(0, 168)
 	
 	for p = 1, Game():GetNumPlayers() do
-		local player = Game():GetPlayer(p-1)
-		local playerType = Isaac.GetPlayer(p-1):GetPlayerType()
-		if p == 1 and playerType == PlayerType.PLAYER_JACOB then --Jacob always has Esau so no need to check for Esau
-			self.coords = self.coords + Vector(0, 14)
-		elseif playerType == PlayerType.PLAYER_BETHANY and not SoulHeartShift then -- Shifts Stats because of Soul Heart Counter
-			self.coords = self.coords + Vector(0, 9)
+		local player = Isaac.GetPlayer(p-1)
+		local playerType = player:GetPlayerType()
+		local twinType = player:GetMainTwin():GetPlayerType() -- should be the same as playertype unless j&e and t forgor
+		
+		-- Ignores Coop Babies, Tainted Forgottens Soul, Esau, and Temporary players like Strawman or Soul of Forgotten/Jacob&Esau. Otherwise Shift to show 2nd player stats
+		if p > 1 and player:GetBabySkin() == -1 and playerType == twinType and player.Parent == nil then
+			TruePlayerCount = TruePlayerCount + 1
+		end
+		if playerType == PlayerType.PLAYER_BLUEBABY_B then -- Count T Blue Babies for any co-op poop counter shenanigans
+			T_BlueBabyCount = T_BlueBabyCount + 1
+		end
+		
+		--For some reason whether or not Jacob&Esau are 1st player or another player matters, so I have to check specifically if its player 1. Regular co-op shift will be used if player 2
+		if p == 1 and playerType == PlayerType.PLAYER_JACOB and not JacobShift then
+			JacobShift = true
+		end
+		if playerType == PlayerType.PLAYER_BETHANY and not SoulHeartShift then -- Shifts Stats because of Soul Heart Counter
 			SoulHeartShift = true
-		elseif playerType == PlayerType.PLAYER_BETHANY_B and not RedHeartShift then -- Shifts Stats because of Red Heart Counter
-			self.coords = self.coords + Vector(0, 9)
+		end
+		if playerType == PlayerType.PLAYER_BETHANY_B and not RedHeartShift then -- Shifts Stats because of Red Heart Counter
 			RedHeartShift = true
-		elseif playerType == PlayerType.PLAYER_XXX_B and not PoopShift then -- Shifts Stats because of Poop Counter
-			self.coords = self.coords + Vector(0, 9)
-			PoopShift = true
 		end
-		if playerType ~= PlayerType.PLAYER_XXX_B and player:GetBabySkin() == -1 and not BombShift then -- Shifts Stats because of Bomb Counter, only needed if Tainted XXX plays with anyone else
-			self.coords = self.coords + Vector(0, 9)
-			BombShift = true
-		end
-		-- Ignores Coop Babies, Tainted Forgottens Soul, and Temporary players like Strawman or Soul of Forgotten/Jacob&Esau. Otherwise Shift to show 2nd player stats. Includes Esau
-		if TrueCoopShift and  p > 1 and player:GetBabySkin() == -1 and playerType ~= PlayerType.PLAYER_THESOUL_B and player.Parent == nil then
-			self.coords = self.coords + Vector(0, 16)
-			TrueCoopShift = false
+		
+		if player:HasCollectible(CollectibleType.COLLECTIBLE_DUALITY) and not DualityShift then -- Shifts Stats because of Duality
+			DualityShift = true
 		end
 	end
-
-	if EveryoneHasCollectibleNum(CollectibleType.COLLECTIBLE_DUALITY) > 0 then
+	
+	-- Shift Stats because of T. Blue Baby in Co-op.
+	local ExtraPoopShift = false
+	if T_BlueBabyCount > 0 and TruePlayerCount ~= T_BlueBabyCount then
+		ExtraPoopShift = true
+	end
+	
+	if ExtraPoopShift then
+		ShiftCount = ShiftCount + 1
+	end
+	if SoulHeartShift then
+		ShiftCount = ShiftCount + 1
+	end
+	if RedHeartShift then
+		ShiftCount = ShiftCount + 1
+	end
+	
+	if ShiftCount > 0 then
+		self.coords = self.coords + Vector(0, (8 * ShiftCount) + (2 * ShiftCount))
+		
+		-- I have to do these miniscule shifts to get it to look right. The initial algorithm looks clean, but there's something I'm missing...
+		if ShiftCount == 1 then
+			self.coords = self.coords + Vector(0, -1)..
+		end
+		if ShiftCount == 3 then
+			self.coords = self.coords + Vector(0, 1)
+		end
+	end
+	
+	if JacobShift then
+		self.coords = self.coords + Vector(0, 30)
+	elseif TruePlayerCount > 1 then
+		self.coords = self.coords + Vector(0, 16)
+		if DualityShift then
+			self.coords = self.coords + Vector(0, -2)
+		end
+	end
+	if DualityShift then
 		self.coords = self.coords + Vector(0, -12)
 	end
 
-	--Checks if Normal Mode and not Seeded/Challenge/Daily; Seeded/Challenge have no achievements logo, and Daily Challenge has destination logo.
-	if Game().Difficulty == Difficulty.DIFFICULTY_NORMAL and not Game():GetSeeds():IsCustomRun() and not SeedBlocksAchievements() then
-		self.coords = self.coords + Vector(0, -16)
+	--Checks if Hard Mode and Seeded/Challenge/Daily; Seeded/Challenge have no achievements logo, and Daily Challenge has destination logo.
+	if Game().Difficulty == Difficulty.DIFFICULTY_HARD or SeedBlocksAchievements() or Game():GetSeeds():IsCustomRun() then
+		self.coords = self.coords + Vector(0, 16)
 	end
 
 	self.coords = self.coords + (Options.HUDOffset * Vector(20, 12))
@@ -215,7 +229,7 @@ function mod:updateCheck()
 	
 	for p = 1, activePlayers do
 		local player = Isaac.GetPlayer(p-1)
-		if player.FrameCount == 1 or DidPlayerCharacterJustChange(player) then
+		if player.FrameCount == 0 or DidPlayerCharacterJustChange(player) or DidPlayerCollectibleCountJustChange(player) then
 			updatePos = true
 		end
 	end
@@ -228,15 +242,6 @@ function mod:updateCheck()
 	if self.storage.hudoffset ~= Options.HUDOffset then
 		updatePos = true
 		self.storage.hudoffset = Options.HUDOffset
-	end
-
-	--duality can move the icon
-	if(EveryoneHasCollectibleNum(CollectibleType.COLLECTIBLE_DUALITY) > 0) then
-		self.storage.hadDuality = true
-		updatePos = true;
-	elseif self.storage.hadDuality then
-		updatePos = true;
-		self.storage.hadDuality = false
 	end
 		
 	--Was a Victory Lap Completed, Runs completed on Normal Difficulty Will switch to HARD upon start of a Victory Lap
@@ -252,7 +257,7 @@ function mod:updateCheck()
 	end
 		
 	if updatePos then
-		self:updatePosition();
+		self:updatePosition()
 	end
 end
 
@@ -271,14 +276,26 @@ function GetMaxTrinketID()
     return Isaac.GetItemConfig():GetTrinkets().Size -1
 end
 
-function EveryoneHasCollectibleNum(collectibleID)
-	local collectibleCount = 0
-	for p = 1, Game():GetNumPlayers() do
-		local player = Isaac.GetPlayer(p-1)
-		collectibleCount = collectibleCount + player:GetCollectibleNum(collectibleID)
+--collectible count just change
+function DidPlayerCollectibleCountJustChange(player)
+	local data = player:GetData()
+	if data.didCollectibleCountJustChange then
+		return true
 	end
-	return collectibleCount
+	return false
 end
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
+	local data = player:GetData()
+	local currentCollectibleCount = player:GetCollectibleCount()
+	if not data.lastCollectibleCount then
+		data.lastCollectibleCount = currentCollectibleCount
+	end
+	data.didCollectibleCountJustChange = false
+	if data.lastCollectibleCount ~= currentCollectibleCount then
+		data.didCollectibleCountJustChange = true
+	end
+	data.lastCollectibleCount = currentCollectibleCount
+end)
 
 --character just change
 function DidPlayerCharacterJustChange(player)
@@ -326,7 +343,7 @@ function mod:initStore()
 	self.storage = {} 
 	self.coords = Vector(21, 197.5)
 end
-mod:initStore();
+mod:initStore()
 
 mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.updatePlanetariumChance)
 	
@@ -334,12 +351,7 @@ mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.init)
 mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.exit)
 
 mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onRender)
---mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.test)
 
-mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.updateCheck)
-
-mod:AddCallback(ModCallbacks.MC_POST_PICKUP_INIT, mod.preventHelperTrinketSpawn, PickupVariant.PICKUP_TRINKET)
-mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, mod.preventHelperTrinketPickup)
 --mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.rKeyCheck, CollectibleType.COLLECTIBLE_R_KEY)
 
 --Custom Shader Fix by AgentCucco

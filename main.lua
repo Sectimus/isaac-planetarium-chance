@@ -134,7 +134,6 @@ end
 
 function mod:updatePosition()
 	--Updates position of Chance Stat
-	local JacobShift = false
 	local RedHeartShift = false
 	local SoulHeartShift = false
 	local DualityShift = false
@@ -158,10 +157,6 @@ function mod:updatePosition()
 			T_BlueBabyCount = T_BlueBabyCount + 1
 		end
 		
-		--For some reason whether or not Jacob&Esau are 1st player or another player matters, so I have to check specifically if its player 1. Regular co-op shift will be used if player 2
-		if p == 1 and playerType == PlayerType.PLAYER_JACOB and not JacobShift then
-			JacobShift = true
-		end
 		if playerType == PlayerType.PLAYER_BETHANY and not SoulHeartShift then -- Shifts Stats because of Soul Heart Counter
 			SoulHeartShift = true
 		end
@@ -189,12 +184,13 @@ function mod:updatePosition()
 		self.coords = self.coords + Vector(0, (11 * ShiftCount) - 2)
 	end
 	
-	if JacobShift then
+	--For some reason whether or not Jacob&Esau are 1st player or another player matters, so I have to check specifically if Jacob is player 1 here
+	if Isaac.GetPlayer(0):GetPlayerType() == PlayerType.PLAYER_JACOB then
 		self.coords = self.coords + Vector(0, 30)
 	elseif TruePlayerCount > 1 then
 		self.coords = self.coords + Vector(0, 16)
 		if DualityShift then 
-			self.coords = self.coords + Vector(0, -2)
+			self.coords = self.coords + Vector(0, -2) -- I hate this
 		end
 	end
 	if DualityShift then

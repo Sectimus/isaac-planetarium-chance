@@ -134,6 +134,7 @@ end
 
 function mod:updatePosition()
 	--Updates position of Chance Stat
+	local TrueCoopShift = false
 	local RedHeartShift = false
 	local SoulHeartShift = false
 	local DualityShift = false
@@ -149,9 +150,12 @@ function mod:updatePosition()
 		local playerType = player:GetPlayerType()
 		local twinType = player:GetMainTwin():GetPlayerType() -- should be the same as playertype unless j&e and t forgor
 		
-		-- Ignores Coop Babies, Tainted Forgottens Soul, Esau, and Temporary players like Strawman or Soul of Forgotten/Jacob&Esau. Otherwise Shift to show 2nd player stats
-		if p > 1 and player:GetBabySkin() == -1 and playerType == twinType and player.Parent == nil then
+		-- Ignores Coop Babies, Tainted Forgottens Soul, and Esau. Count all unique players that could effect the stats hud
+		if p > 1 and player:GetBabySkin() == -1 and playerType == twinType then
 			TruePlayerCount = TruePlayerCount + 1
+			if player.Parent == nil and not TrueCoopShift then -- Ignores strawman and other temporary 'clone' players, must be co-op if so
+				TrueCoopShift = true
+			end
 		end
 		if playerType == PlayerType.PLAYER_BLUEBABY_B then -- Count T Blue Babies for any co-op poop counter shenanigans
 			T_BlueBabyCount = T_BlueBabyCount + 1
@@ -187,7 +191,7 @@ function mod:updatePosition()
 	--For some reason whether or not Jacob&Esau are 1st player or another player matters, so I have to check specifically if Jacob is player 1 here
 	if Isaac.GetPlayer(0):GetPlayerType() == PlayerType.PLAYER_JACOB then
 		self.coords = self.coords + Vector(0, 30)
-	elseif TruePlayerCount > 1 then
+	elseif TrueCoopShift then
 		self.coords = self.coords + Vector(0, 16)
 		if DualityShift then 
 			self.coords = self.coords + Vector(0, -2) -- I hate this

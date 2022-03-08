@@ -174,13 +174,8 @@ function mod:updatePosition()
 		end
 	end
 	
-	-- Shift Stats because of T. Blue Baby in Co-op.
-	local ExtraPoopShift = false
+	-- Extra Shift because of T. Blue Baby in Co-op.
 	if T_BlueBabyCount > 0 and TruePlayerCount ~= T_BlueBabyCount then
-		ExtraPoopShift = true
-	end
-	
-	if ExtraPoopShift then
 		ShiftCount = ShiftCount + 1
 	end
 	if SoulHeartShift then

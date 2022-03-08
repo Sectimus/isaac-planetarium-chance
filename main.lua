@@ -135,55 +135,57 @@ end
 function mod:updatePosition()
 	--Updates position of Chance Stat
 	local TrueCoopShift = false
+	local BombShift = false
+	local PoopShift = false
 	local RedHeartShift = false
 	local SoulHeartShift = false
 	local DualityShift = false
 	
-	local TruePlayerCount = 1 -- there is always at least 1 player
-	local T_BlueBabyCount = 0
 	local ShiftCount = 0
 
 	self.coords = Vector(0, 168)
 	
-	for p = 1, Game():GetNumPlayers() do
-		local player = Isaac.GetPlayer(p-1)
+	for i = 0, Game():GetNumPlayers() - 1 do
+		local player = Isaac.GetPlayer(i)
 		local playerType = player:GetPlayerType()
-		local twinType = player:GetMainTwin():GetPlayerType() -- should be the same as playertype unless j&e and t forgor
 		
-		-- Ignores Coop Babies, Tainted Forgottens Soul, and Esau. Count all unique players that could effect the stats hud
-		if p > 1 and player:GetBabySkin() == -1 and playerType == twinType then
-			TruePlayerCount = TruePlayerCount + 1
-			if player.Parent == nil and not TrueCoopShift then -- Ignores strawman and other temporary 'clone' players, must be co-op if so
+		if player:GetBabySkin() == -1 then
+			if i > 0 and player.Parent == nil and playerType == player:GetMainTwin():GetPlayerType() and not TrueCoopShift then
 				TrueCoopShift = true
 			end
+				
+			if playerType ~= PlayerType.PLAYER_BLUEBABY_B and not BombShift then -- Shift Stats because of Bomb Counter
+				BombShift = true
+			end
 		end
-		if playerType == PlayerType.PLAYER_BLUEBABY_B then -- Count T Blue Babies for any co-op poop counter shenanigans
-			T_BlueBabyCount = T_BlueBabyCount + 1
-		end
-		
-		if playerType == PlayerType.PLAYER_BETHANY and not SoulHeartShift then -- Shifts Stats because of Soul Heart Counter
-			SoulHeartShift = true
+		if playerType == PlayerType.PLAYER_BLUEBABY_B and not PoopShift then -- Shift Stats because of Poop Spell Counter
+			PoopShift = true
 		end
 		if playerType == PlayerType.PLAYER_BETHANY_B and not RedHeartShift then -- Shifts Stats because of Red Heart Counter
 			RedHeartShift = true
 		end
-		
+		if playerType == PlayerType.PLAYER_BETHANY and not SoulHeartShift then -- Shifts Stats because of Soul Heart Counter
+			SoulHeartShift = true
+		end
+
 		if player:HasCollectible(CollectibleType.COLLECTIBLE_DUALITY) and not DualityShift then -- Shifts Stats because of Duality
 			DualityShift = true
 		end
 	end
-	
-	-- Extra Shift because of T. Blue Baby in Co-op.
-	if T_BlueBabyCount > 0 and TruePlayerCount ~= T_BlueBabyCount then
+
+	if BombShift then
 		ShiftCount = ShiftCount + 1
 	end
-	if SoulHeartShift then
+	if PoopShift then
 		ShiftCount = ShiftCount + 1
 	end
 	if RedHeartShift then
 		ShiftCount = ShiftCount + 1
 	end
-	
+	if SoulHeartShift then
+		ShiftCount = ShiftCount + 1
+	end
+	ShiftCount = ShiftCount - 1 -- There will always be 1 ShiftCount due to bombs and poop, so its safe to do this
 	if ShiftCount > 0 then
 		self.coords = self.coords + Vector(0, (11 * ShiftCount) - 2)
 	end

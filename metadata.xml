@@ -8,17 +8,14 @@
 [i]Items that affect the chance of a planetarium spawn will not show until you enter the next floor, as your current floor layout will not change.[/i]
 
 [hr][/hr]
-
-[i]If you continue a previous run, the displayed value may not be correct for the current floor, however will correct itself for the following floor.[/i]
-
-[hr][/hr]
-
 Make sure you have the requirements unlocked to be able to actually see the planetarium.
+
+If you continue a previous run, the displayed value may not be correct for the current floor, however will correct itself for the following floor.
 
 [hr][/hr]
 
 Have any ideas? Found a bug? visit the mod repository @ https://github.com/Sectimus/isaac-planetarium-chance/issues</description>
-    <version>7.3</version>
+    <version>7.4</version>
     <visibility>Public</visibility>
     <tag id="Lua"/>
     <tag id="Tweaks"/>

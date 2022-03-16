@@ -15,7 +15,7 @@ If you continue a previous run, the displayed value may not be correct for the c
 [hr][/hr]
 
 Have any ideas? Found a bug? visit the mod repository @ https://github.com/Sectimus/isaac-planetarium-chance/issues</description>
-    <version>7.6</version>
+    <version>7.7</version>
     <visibility>Public</visibility>
     <tag id="Lua"/>
     <tag id="Tweaks"/>

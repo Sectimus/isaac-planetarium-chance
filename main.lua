@@ -129,10 +129,11 @@ function mod:shouldDeHook()
 		not Options.FoundHUD,
 		not Game():GetHUD():IsVisible(),
 		Game():GetRoom():GetType() == RoomType.ROOM_DUNGEON and Game():GetLevel():GetAbsoluteStage() == LevelStage.STAGE8, --beast fight
-		Game():GetSeeds():HasSeedEffect(SeedEffect.SEED_NO_HUD)
+		Game():GetSeeds():HasSeedEffect(SeedEffect.SEED_NO_HUD),
+		Game():IsGreedMode()
 	}
 
-	return reqs[1] or reqs[2] or reqs[3] or reqs[4] or reqs[5]
+	return reqs[1] or reqs[2] or reqs[3] or reqs[4] or reqs[5] or reqs[6]
 end
 
 function mod:updatePosition()

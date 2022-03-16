@@ -12,13 +12,16 @@ local NoTrophySeeds = {
 	SeedEffect.SEED_ALWAYS_CONFUSED, SeedEffect.SEED_ALWAYS_AFRAID, SeedEffect.SEED_ALWAYS_ALTERNATING_FEAR, SeedEffect.SEED_ALWAYS_CHARMED_AND_AFRAID, SeedEffect.SEED_SUPER_HOT
 	}
 
-
 function mod:onRender(shaderName)
-	if shaderName ~= "UI_DrawPlanetariumChance_DummyShader" then return end
 	if mod:shouldDeHook() then return end
 	
-	mod:updateCheck()
+	local isShader = shaderName == "UI_DrawPlanetariumChance_DummyShader" and true or false
+		
+	if not (Game():IsPaused() and Isaac.GetPlayer(0).ControlsEnabled) and not isShader then return end -- no render when unpaused 
+	if (Game():IsPaused() and Isaac.GetPlayer(0).ControlsEnabled) and isShader then return end -- no shader when paused
 	
+	mod:updateCheck()
+
 	--account for screenshake offset
 	local textCoords = self.coords + Game().ScreenShakeOffset
 	local valueOutput = string.format("%.1s%%", "?")
@@ -340,6 +343,7 @@ mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.init)
 mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.exit)
 
 mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onRender)
+mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.onRender)
 
 --mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.rKeyCheck, CollectibleType.COLLECTIBLE_R_KEY)
 

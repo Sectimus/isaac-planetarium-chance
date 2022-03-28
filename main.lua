@@ -210,7 +210,7 @@ function mod:updatePosition()
 	end
 
 	--Checks if Hard Mode and Seeded/Challenge/Daily; Seeded/Challenge have no achievements logo, and Daily Challenge has destination logo.
-	if Game().Difficulty == Difficulty.DIFFICULTY_HARD or SeedBlocksAchievements() or Game():GetSeeds():IsCustomRun() then
+	if Game().Difficulty == Difficulty.DIFFICULTY_HARD or Game():IsGreedMode() or SeedBlocksAchievements() or Game():GetSeeds():IsCustomRun() then
 		self.coords = self.coords + Vector(0, 16)
 	end
 

@@ -16,9 +16,11 @@ function mod:onRender(shaderName)
 	if mod:shouldDeHook() then return end
 	
 	local isShader = shaderName == "UI_DrawPlanetariumChance_DummyShader" and true or false
-		
+	
 	if not (Game():IsPaused() and Isaac.GetPlayer(0).ControlsEnabled) and not isShader then return end -- no render when unpaused 
 	if (Game():IsPaused() and Isaac.GetPlayer(0).ControlsEnabled) and isShader then return end -- no shader when paused
+	
+	if shaderName ~= nil and not isShader then return end -- final failsafe
 	
 	mod:updateCheck()
 
@@ -130,10 +132,10 @@ function mod:shouldDeHook()
 		not Game():GetHUD():IsVisible(),
 		Game():GetRoom():GetType() == RoomType.ROOM_DUNGEON and Game():GetLevel():GetAbsoluteStage() == LevelStage.STAGE8, --beast fight
 		Game():GetSeeds():HasSeedEffect(SeedEffect.SEED_NO_HUD),
-		Game():IsGreedMode()
+		-- Game():IsGreedMode() //The chance should still display on Greed Mode even if its 0 for consistency with the rest of the HUD.
 	}
 
-	return reqs[1] or reqs[2] or reqs[3] or reqs[4] or reqs[5] or reqs[6]
+	return reqs[1] or reqs[2] or reqs[3] or reqs[4] or reqs[5]
 end
 
 function mod:updatePosition()
@@ -208,7 +210,7 @@ function mod:updatePosition()
 	end
 
 	--Checks if Hard Mode and Seeded/Challenge/Daily; Seeded/Challenge have no achievements logo, and Daily Challenge has destination logo.
-	if Game().Difficulty == Difficulty.DIFFICULTY_HARD or SeedBlocksAchievements() or Game():GetSeeds():IsCustomRun() then
+	if Game().Difficulty == Difficulty.DIFFICULTY_HARD or Game():IsGreedMode() or SeedBlocksAchievements() or Game():GetSeeds():IsCustomRun() then
 		self.coords = self.coords + Vector(0, 16)
 	end
 

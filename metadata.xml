@@ -14,7 +14,9 @@ If you continue a previous run, the displayed value may not be correct for the c
 
 [hr][/hr]
 
-Have any ideas? Found a bug? visit the mod repository @ https://github.com/Sectimus/isaac-planetarium-chance/issues</description>
+Have any ideas? Found a bug? visit the mod repository @ https://github.com/Sectimus/isaac-planetarium-chance/issues
+
+Contributors: [url=https://steamcommunity.com/id/kittenchilly]@Kittenchilly[/url], [url=https://github.com/UnfairPath20]@UnfairPath20[/url]</description>
     <version>8.0</version>
     <visibility>Public</visibility>
     <tag id="Lua"/>

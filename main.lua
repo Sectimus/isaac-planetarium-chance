@@ -224,7 +224,7 @@ function mod:updateCheck()
 	
 	for p = 1, activePlayers do
 		local player = Isaac.GetPlayer(p-1)
-		if player.FrameCount == 0 or DidPlayerCharacterJustChange(player) or DidPlayerCollectibleCountJustChange(player) then
+		if player.FrameCount == 0 or DidPlayerCharacterJustChange(player) or DidPlayerDualityCountJustChange(player) then
 			updatePos = true
 		end
 	end
@@ -271,25 +271,24 @@ function GetMaxTrinketID()
     return Isaac.GetItemConfig():GetTrinkets().Size -1
 end
 
---collectible count just change
-function DidPlayerCollectibleCountJustChange(player)
+function DidPlayerDualityCountJustChange(player)
 	local data = player:GetData()
-	if data.didCollectibleCountJustChange then
+	if data.didDualityCountJustChange then
 		return true
 	end
 	return false
 end
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
 	local data = player:GetData()
-	local currentCollectibleCount = player:GetCollectibleCount()
-	if not data.lastCollectibleCount then
-		data.lastCollectibleCount = currentCollectibleCount
+	local currentDualityCount = player:GetCollectibleNum(CollectibleType.COLLECTIBLE_DUALITY)
+	if not data.lastDualityCount then
+		data.lastDualityCount = currentDualityCount
 	end
-	data.didCollectibleCountJustChange = false
-	if data.lastCollectibleCount ~= currentCollectibleCount then
-		data.didCollectibleCountJustChange = true
+	data.didDualityCountJustChange = false
+	if data.lastDualityCount ~= currentDualityCount then
+		data.didDualityCountJustChange = true
 	end
-	data.lastCollectibleCount = currentCollectibleCount
+	data.lastDualityCount = currentDualityCount
 end)
 
 --character just change

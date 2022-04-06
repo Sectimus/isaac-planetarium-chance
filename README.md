@@ -1,3 +1,5 @@
+[![Steam Downloads](https://img.shields.io/steam/downloads/2489006943?color=blue&logo=Steam&style=flat-square)](https://steamcommunity.com/sharedfiles/filedetails/?id=2489006943)
+
 # isaac-planetarium-chance
 ![alt text](https://steamuserimages-a.akamaihd.net/ugc/1771582194467345491/4DCF0A8AC6D48D83304859A1718258A857FCB247/)
 

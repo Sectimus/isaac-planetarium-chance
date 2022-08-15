@@ -4,14 +4,6 @@ local json = require("json")
 
 mod.initialized=false
 
-local NoTrophySeeds = {
-	SeedEffect.SEED_INFINITE_BASEMENT, SeedEffect.SEED_PICKUPS_SLIDE, SeedEffect.SEED_ITEMS_COST_MONEY, SeedEffect.SEED_PACIFIST, SeedEffect.SEED_ENEMIES_RESPAWN, 
-	SeedEffect.SEED_POOP_TRAIL, SeedEffect.SEED_INVINCIBLE, SeedEffect.SEED_KIDS_MODE, SeedEffect.SEED_PERMANENT_CURSE_LABYRINTH, SeedEffect.SEED_PREVENT_CURSE_DARKNESS, 
-	SeedEffect.SEED_PREVENT_CURSE_LABYRINTH, SeedEffect.SEED_PREVENT_CURSE_LOST, SeedEffect.SEED_PREVENT_CURSE_UNKNOWN, SeedEffect.SEED_PREVENT_CURSE_MAZE, 
-	SeedEffect.SEED_PREVENT_CURSE_BLIND, SeedEffect.SEED_PREVENT_ALL_CURSES, SeedEffect.SEED_GLOWING_TEARS, SeedEffect.SEED_ALL_CHAMPIONS, SeedEffect.SEED_ALWAYS_CHARMED, 
-	SeedEffect.SEED_ALWAYS_CONFUSED, SeedEffect.SEED_ALWAYS_AFRAID, SeedEffect.SEED_ALWAYS_ALTERNATING_FEAR, SeedEffect.SEED_ALWAYS_CHARMED_AND_AFRAID, SeedEffect.SEED_SUPER_HOT
-	}
-
 function mod:onRender(shaderName)
 	if mod:shouldDeHook() then return end
 	
@@ -210,7 +202,7 @@ function mod:updatePosition()
 	end
 
 	--Checks if Hard Mode and Seeded/Challenge/Daily; Seeded/Challenge have no achievements logo, and Daily Challenge has destination logo.
-	if Game().Difficulty == Difficulty.DIFFICULTY_HARD or Game():IsGreedMode() or SeedBlocksAchievements() or Game():GetSeeds():IsCustomRun() then
+	if Game().Difficulty == Difficulty.DIFFICULTY_HARD or Game():IsGreedMode() or not CanRunUnlockAchievements() then
 		self.coords = self.coords + Vector(0, 16)
 	end
 
@@ -313,14 +305,12 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
 	data.lastPlayerType = playerType
 end)
 
-function SeedBlocksAchievements()
-	local seed = Game():GetSeeds()
-	for _,effect in pairs(NoTrophySeeds) do
-		if seed:HasSeedEffect(effect) then
-			return true
-		end
-	end
-	return false
+function CanRunUnlockAchievements() -- by Xalum
+    local machine = Isaac.Spawn(6, 11, 0, Vector.Zero, Vector.Zero, nil)
+    local achievementsEnabled = machine:Exists()
+    machine:Remove()
+
+    return achievementsEnabled
 end
 
 function TextAcceleration(frame) --Overfit distance profile for difference text slide in

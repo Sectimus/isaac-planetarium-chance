@@ -56,7 +56,7 @@ end
 function mod:init(continued)
 	if not continued then
 		self.storage.canPlanetariumsSpawn = 0
-		if not Game():IsGreedMode() then -- check greed mode since planetariums cannot spawn in greed mode
+		if Isaac.GetItemConfig():GetTrinket(TrinketType.TRINKET_TELESCOPE_LENS):IsAvailable() then -- check if telescope lens is available, since if it isn't its either greed mode or planetariums are not unlocked
 			local rooms = Game():GetLevel():GetRooms()
 			for i = 0, rooms.Size - 1 do
 				local room = rooms:Get(i).Data

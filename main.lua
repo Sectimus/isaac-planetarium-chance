@@ -1,5 +1,6 @@
 PlanetariumChance = RegisterMod("Planetarium Chance", 1)
 local mod = PlanetariumChance
+local json = require("json")
 
 mod.initialized = false
 
@@ -54,9 +55,10 @@ function mod:exit()
 end
 
 function mod:init(continued)
+	self.storage.available = Isaac.GetItemConfig():GetTrinket(TrinketType.TRINKET_TELESCOPE_LENS):IsAvailable() and 1 or 0
 	if not continued then
 		self.storage.canPlanetariumsSpawn = 0
-		if Isaac.GetItemConfig():GetTrinket(TrinketType.TRINKET_TELESCOPE_LENS):IsAvailable() then -- check if telescope lens is available, since if it isn't its either greed mode or planetariums are not unlocked
+		if self.storage.available == 1 then -- check if telescope lens is available, since if it isn't its either greed mode or planetariums are not unlocked
 			local rooms = Game():GetLevel():GetRooms()
 			for i = 0, rooms.Size - 1 do
 				local room = rooms:Get(i).Data
@@ -66,9 +68,12 @@ function mod:init(continued)
 				end
 			end
 		end
-		mod:SaveData(self.storage.canPlanetariumsSpawn) -- this is the only thing that needs to be saved, everything else can be recalculated
+		local savestate = {Available = self.storage.available, CanSpawn = self.storage.canPlanetariumsSpawn}
+		mod:SaveData(json.encode(savestate)) -- this is the only thing that needs to be saved, everything else can be recalculated
 	elseif continued then
-		self.storage.canPlanetariumsSpawn = mod:LoadData() or 1
+		local loadstate = type(json.decode(mod:LoadData())) == "table" and json.decode(mod:LoadData()) or {}
+		self.storage.available = tonumber(loadstate.Available or self.storage.available)
+		self.storage.canPlanetariumsSpawn = tonumber(loadstate.CanSpawn or self.storage.available) -- if no save data, display chance if Telescope Lens available
 	end
 
 	self.storage.currentFloorSpawnChance = nil
@@ -101,7 +106,15 @@ function mod:updatePlanetariumChance()
 	elseif self.storage.currentFloorSpawnChance < 0 then
 		self.storage.currentFloorSpawnChance = 0
 	end
-
+	
+	--Checks if planetariums were unlocked mid run, Only possible in Normal/Hard
+	if self.storage.available == 0 and Isaac.GetItemConfig():GetTrinket(TrinketType.TRINKET_TELESCOPE_LENS):IsAvailable() then
+		self.storage.available = 1
+		self.storage.canPlanetariumsSpawn = 1
+		local savestate = {Available = self.storage.available, CanSpawn = self.storage.canPlanetariumsSpawn}
+		mod:SaveData(json.encode(savestate))
+	end
+	
 	if level:IsAscent() or self.storage.canPlanetariumsSpawn == 0 then
 		self.storage.currentFloorSpawnChance = 0
 	end

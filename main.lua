@@ -351,7 +351,7 @@ mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.exit)
 
 if REPENTOGON then
 	mod:AddCallback(ModCallbacks.MC_POST_HUD_RENDER, mod.onRender)
- not REPENTOGON then
+else
 	mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onRender)
 	mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.onRender)
 end

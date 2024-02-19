@@ -1,0 +1,20 @@
+name: Upload Planetarium Chance to the Steam Workshop.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  workshopUpload:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged)
+    steps:
+      - name: Create build folder and copy files
+        run: mkdir build && git ls-files | xargs -I {} rsync --relative {} build/
+      - uses: m00nl1ght-dev/steam-workshop-deploy@v1
+        with:
+          username: ${{ secrets.STEAM_USERNAME }}
+          configVdf: ${{ secrets.STEAM_CONFIG_VDF }}
+          path: build
+          appId: 113200
+          publishedFileId: 2489006943

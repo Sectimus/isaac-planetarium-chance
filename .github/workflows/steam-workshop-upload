@@ -8,7 +8,7 @@ on:
 jobs:
   workshopUpload:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged)
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged)
     steps:
       - name: Create build folder and copy files
         run: mkdir build && git ls-files | xargs -I {} rsync --relative {} build/

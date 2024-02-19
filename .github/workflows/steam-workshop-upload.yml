@@ -15,7 +15,7 @@ jobs:
       - name: Create build folder and copy files
         run: mkdir build && git ls-files | xargs -I {} rsync --relative {} build/
       - name: Push to Steam Workshop
-        uses: m00nl1ght-dev/steam-workshop-deploy@v1
+        uses: game-ci/steam-deploy@v3
         with:
           username: ${{ secrets.STEAM_USERNAME }}
           configVdf: ${{ secrets.STEAM_CONFIG_VDF }}

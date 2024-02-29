@@ -47,8 +47,8 @@ local function TextAcceleration(frame) --Overfit distance profile for difference
 	return -(15.1 / (13 * 13)) * frame * frame
 end
 
-local function IsBeastRoom(room) -- same as how the game does it
-	return room and room:GetType() == 16 and room:GetRoomConfigStage() == 35
+local function IsBeastRoom(room) -- same as how the vanilla game detects it
+	return room and room:GetType() == RoomType.ROOM_DUNGEON and room:GetRoomConfigStage() == 35 -- home
 end
 
 function mod:onRender(shaderName)

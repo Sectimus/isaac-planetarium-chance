@@ -6,13 +6,14 @@ mod.initialized = false
 
 function mod:onRender(shaderName)
 	if mod:shouldDeHook() then return end
+	if not REPENTOGON then
+		local isShader = shaderName == "UI_DrawPlanetariumChance_DummyShader" and true or false
 
-	local isShader = shaderName == "UI_DrawPlanetariumChance_DummyShader" and true or false
+		if not (Game():IsPaused() and Isaac.GetPlayer(0).ControlsEnabled) and not isShader then return end -- no render when unpaused
+		if (Game():IsPaused() and Isaac.GetPlayer(0).ControlsEnabled) and isShader then return end -- no shader when paused
 
-	if not (Game():IsPaused() and Isaac.GetPlayer(0).ControlsEnabled) and not isShader then return end -- no render when unpaused
-	if (Game():IsPaused() and Isaac.GetPlayer(0).ControlsEnabled) and isShader then return end -- no shader when paused
-
-	if shaderName ~= nil and not isShader then return end -- final failsafe
+		if shaderName ~= nil and not isShader then return end -- final failsafe
+	end
 
 	mod:updateCheck()
 
@@ -106,7 +107,7 @@ function mod:updatePlanetariumChance()
 	elseif self.storage.currentFloorSpawnChance < 0 then
 		self.storage.currentFloorSpawnChance = 0
 	end
-	
+
 	--Checks if planetariums were unlocked mid run, Only possible in Normal/Hard
 	if self.storage.available == 0 and Isaac.GetItemConfig():GetTrinket(TrinketType.TRINKET_TELESCOPE_LENS):IsAvailable() then
 		self.storage.available = 1
@@ -114,7 +115,7 @@ function mod:updatePlanetariumChance()
 		local savestate = {Available = self.storage.available, CanSpawn = self.storage.canPlanetariumsSpawn}
 		mod:SaveData(json.encode(savestate))
 	end
-	
+
 	if level:IsAscent() or self.storage.canPlanetariumsSpawn == 0 then
 		self.storage.currentFloorSpawnChance = 0
 	end
@@ -319,6 +320,7 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
 end)
 
 function CanRunUnlockAchievements() -- by Xalum
+	if REPENTOGON then return Game():AchievementUnlocksDisallowed() end
 	local machine = Isaac.Spawn(6, 11, 0, Vector.Zero, Vector.Zero, nil)
 	local achievementsEnabled = machine:Exists()
 	machine:Remove()
@@ -347,8 +349,12 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.updatePlanetariumChance)
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.init)
 mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.exit)
 
-mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onRender)
-mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.onRender)
+if REPENTOGON then
+	mod:AddCallback(ModCallbacks.MC_POST_HUD_RENDER, mod.onRender)
+else
+	mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onRender)
+	mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.onRender)
+end
 
 --mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.rKeyCheck, CollectibleType.COLLECTIBLE_R_KEY)
 

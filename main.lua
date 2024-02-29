@@ -4,10 +4,57 @@ local json = require("json")
 
 mod.initialized = false
 
+-- Custom Log Command
+local function log(text)
+	Isaac.DebugString(tostring(text))
+end
+
+local function GetMaxTrinketID()
+	return Isaac.GetItemConfig():GetTrinkets().Size - 1
+end
+
+local function DidPlayerDualityCountJustChange(player)
+	local data = player:GetData()
+	if data.didDualityCountJustChange then
+		return true
+	end
+	return false
+end
+
+--character just change
+local function DidPlayerCharacterJustChange(player)
+	local data = player:GetData()
+	if data.playerTypeJustChanged then
+		return true
+	end
+	return false
+end
+
+local function CanRunUnlockAchievements() -- by Xalum
+	if REPENTOGON then return Game():AchievementUnlocksDisallowed() end
+	local machine = Isaac.Spawn(6, 11, 0, Vector.Zero, Vector.Zero, nil)
+	local achievementsEnabled = machine:Exists()
+	machine:Remove()
+
+	return achievementsEnabled
+end
+
+local function TextAcceleration(frame) --Overfit distance profile for difference text slide in
+	frame = frame - 14
+	if frame > 0 then
+		return 0
+	end
+	return -(15.1 / (13 * 13)) * frame * frame
+end
+
+local function IsBeastRoom(room) -- same as how the game does it
+	return room and room:GetType() == 16 and room:GetRoomConfigStage() == 35
+end
+
 function mod:onRender(shaderName)
 	if mod:shouldDeHook() then return end
 	if not REPENTOGON then
-		local isShader = shaderName == "UI_DrawPlanetariumChance_DummyShader" and true or false
+		local isShader = shaderName == "UI_DrawPlanetariumChance_DummyShader"
 
 		if not (Game():IsPaused() and Isaac.GetPlayer(0).ControlsEnabled) and not isShader then return end -- no render when unpaused
 		if (Game():IsPaused() and Isaac.GetPlayer(0).ControlsEnabled) and isShader then return end -- no shader when paused
@@ -135,7 +182,7 @@ function mod:shouldDeHook()
 		not self.initialized,
 		not Options.FoundHUD,
 		not Game():GetHUD():IsVisible(),
-		Game():GetRoom():GetType() == RoomType.ROOM_DUNGEON and Game():GetLevel():GetAbsoluteStage() == LevelStage.STAGE8, --beast fight
+		IsBeastRoom(Game():GetRoom()),
 		Game():GetSeeds():HasSeedEffect(SeedEffect.SEED_NO_HUD),
 		-- Game():IsGreedMode() //The chance should still display on Greed Mode even if its 0 for consistency with the rest of the HUD.
 	}
@@ -267,23 +314,6 @@ end
 
 ---------------------------------------------------------------------------------------------------------
 
--- Custom Log Command
-function log(text)
-	Isaac.DebugString(tostring(text))
-end
-
-function GetMaxTrinketID()
-	return Isaac.GetItemConfig():GetTrinkets().Size - 1
-end
-
-function DidPlayerDualityCountJustChange(player)
-	local data = player:GetData()
-	if data.didDualityCountJustChange then
-		return true
-	end
-	return false
-end
-
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
 	local data = player:GetData()
 	local currentDualityCount = player:GetCollectibleNum(CollectibleType.COLLECTIBLE_DUALITY)
@@ -297,15 +327,6 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
 	data.lastDualityCount = currentDualityCount
 end)
 
---character just change
-function DidPlayerCharacterJustChange(player)
-	local data = player:GetData()
-	if data.playerTypeJustChanged then
-		return true
-	end
-	return false
-end
-
 mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
 	local data = player:GetData()
 	local playerType = player:GetPlayerType()
@@ -318,23 +339,6 @@ mod:AddCallback(ModCallbacks.MC_POST_PLAYER_UPDATE, function(_, player)
 	end
 	data.lastPlayerType = playerType
 end)
-
-function CanRunUnlockAchievements() -- by Xalum
-	if REPENTOGON then return Game():AchievementUnlocksDisallowed() end
-	local machine = Isaac.Spawn(6, 11, 0, Vector.Zero, Vector.Zero, nil)
-	local achievementsEnabled = machine:Exists()
-	machine:Remove()
-
-	return achievementsEnabled
-end
-
-function TextAcceleration(frame) --Overfit distance profile for difference text slide in
-	frame = frame - 14
-	if frame > 0 then
-		return 0
-	end
-	return -(15.1 / (13 * 13)) * frame * frame
-end
 
 --init self storage from mod namespace before any callbacks by blocking.
 function mod:initStore()
@@ -354,13 +358,13 @@ if REPENTOGON then
 else
 	mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onRender)
 	mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.onRender)
+
+		--Custom Shader Fix by AgentCucco
+	mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, function()
+		if #Isaac.FindByType(EntityType.ENTITY_PLAYER) == 0 then
+			Isaac.ExecuteCommand("reloadshaders")
+		end
+	end)
 end
 
 --mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.rKeyCheck, CollectibleType.COLLECTIBLE_R_KEY)
-
---Custom Shader Fix by AgentCucco
-mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, function()
-	if #Isaac.FindByType(EntityType.ENTITY_PLAYER) == 0 then
-		Isaac.ExecuteCommand("reloadshaders")
-	end
-end)

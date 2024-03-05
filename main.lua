@@ -31,7 +31,7 @@ local function DidPlayerCharacterJustChange(player)
 end
 
 local function CanRunUnlockAchievements() -- by Xalum
-	if REPENTOGON then return Game():AchievementUnlocksDisallowed() end
+	if REPENTOGON then return not Game():AchievementUnlocksDisallowed() end
 	local machine = Isaac.Spawn(6, 11, 0, Vector.Zero, Vector.Zero, nil)
 	local achievementsEnabled = machine:Exists()
 	machine:Remove()

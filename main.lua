@@ -3,6 +3,7 @@ local mod = PlanetariumChance
 local json = require("json")
 
 mod.initialized = false
+local dogmaEnded = false
 
 -- Custom Log Command
 local function log(text)
@@ -104,6 +105,7 @@ end
 
 function mod:init(continued)
 	self.storage.available = Isaac.GetItemConfig():GetTrinket(TrinketType.TRINKET_TELESCOPE_LENS):IsAvailable() and 1 or 0
+	dogmaEnded = false
 	if not continued then
 		self.storage.canPlanetariumsSpawn = 0
 		if self.storage.available == 1 then -- check if telescope lens is available, since if it isn't its either greed mode or planetariums are not unlocked
@@ -176,12 +178,31 @@ function mod:updatePlanetariumChance()
 	end
 end
 
+function mod:isDogmaDefeated()
+	-- This is super lame, but the only way to avoid drawing over the death animation (dogma flash) is by considering dogma "dead" after 80 frames of his death animation have played. 
+	if dogmaEnded then return true end
+	local isDogma = Game():GetLevel():GetAbsoluteStage() == LevelStage.STAGE8 and Game():GetRoom():IsCurrentRoomLastBoss()
+	if isDogma then
+		for _,v in pairs(Isaac.GetRoomEntities()) do
+			if v:IsBoss() and v.HitPoints <= 0 then 
+				if v:GetSprite():GetAnimation() == "Death" and v:GetSprite():GetFrame() > 80 then
+					dogmaEnded = true
+					return true
+				end
+			end
+		end
+	end
+	return false
+end
+
 function mod:shouldDeHook()
 
+	-- Hide the icon IF:
 	local reqs = {
 		not self.initialized,
 		not Options.FoundHUD,
 		not Game():GetHUD():IsVisible(),
+		mod:isDogmaDefeated(),
 		IsBeastRoom(Game():GetRoom()),
 		Game():GetSeeds():HasSeedEffect(SeedEffect.SEED_NO_HUD),
 		-- Game():IsGreedMode() //The chance should still display on Greed Mode even if its 0 for consistency with the rest of the HUD.

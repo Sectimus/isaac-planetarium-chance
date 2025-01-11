@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <metadata>
-    <name>Planetarium Chance</name>
+    <name>Planetarium Chance [REP+]</name>
     <directory>planetarium chance</directory>
     <id>2489006943</id>
     <description>Displays the chance of a planetarium being present (on the current floor) in the HUD. Takes into account all items, collectibles and modifiers.
@@ -17,7 +17,7 @@ If you continue a previous run, the displayed value may not be correct for the c
 Have any ideas? Found a bug? visit the mod repository @ https://github.com/Sectimus/isaac-planetarium-chance/issues
 
 Contributors: [url=https://steamcommunity.com/id/kittenchilly]@Kittenchilly[/url], [url=https://github.com/UnfairPath20]@UnfairPath20[/url]</description>
-    <version>9.4</version>
+    <version>10.0</version>
     <visibility>Public</visibility>
     <tag id="Lua"/>
     <tag id="Tweaks"/>

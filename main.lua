@@ -184,11 +184,9 @@ function mod:isDogmaDefeated()
 	local isDogma = Game():GetLevel():GetAbsoluteStage() == LevelStage.STAGE8 and Game():GetRoom():IsCurrentRoomLastBoss()
 	if isDogma then
 		for _,v in pairs(Isaac.GetRoomEntities()) do
-			if v:IsBoss() and v.HitPoints <= 0 then 
-				if v:GetSprite():GetAnimation() == "Death" and v:GetSprite():GetFrame() > 80 then
-					dogmaEnded = true
-					return true
-				end
+			if v:IsBoss() and v:GetSprite():GetAnimation() == "Death" and v:GetSprite():GetFrame() > 80 then
+				dogmaEnded = true
+				return true
 			end
 		end
 	end

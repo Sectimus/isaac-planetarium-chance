@@ -12,7 +12,7 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged)
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2  # Add this line to check out the repository
+        uses: actions/checkout@v2  # Add this line to check out the current repository
       - name: Create build folder and copy files
         run: mkdir build && git ls-files | xargs -I {} rsync --relative {} build/
       - name: Push to Steam Workshop

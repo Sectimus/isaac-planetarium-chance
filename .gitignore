@@ -6,3 +6,4 @@ disable.it.x
 /scripts/eid_savegames.lua
 /.vscode
 .luarc.json
+build/

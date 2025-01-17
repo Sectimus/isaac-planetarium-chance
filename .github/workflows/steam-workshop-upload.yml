@@ -11,9 +11,14 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged)
     steps:
-      - uses: m00nl1ght-dev/steam-workshop-deploy@v3
+      - name: Checkout repository
+        uses: actions/checkout@v2  # Add this line to check out the repository
+      - name: Create build folder and copy files
+        run: mkdir build && git ls-files | xargs -I {} rsync --relative {} build/
+      - name: Push to Steam Workshop
+        uses: m00nl1ght-dev/steam-workshop-deploy@v3
         with:
-          username: ${{ secrets.STEAM_USERNAME }}          
+          username: ${{ secrets.STEAM_USERNAME }}
           configVdf: ${{ secrets.STEAM_CONFIG_VDF }}
           path: build
           appId: 250900

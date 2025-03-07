@@ -209,7 +209,7 @@ function mod:shouldDeHook()
 		-- Game():IsGreedMode() //The chance should still display on Greed Mode even if its 0 for consistency with the rest of the HUD.
 	}
 
-	return reqs[1] or reqs[2] or reqs[3] or reqs[4] or reqs[5] or reqs[6]
+	return reqs[1] or reqs[2] or reqs[3] or reqs[4] or reqs[5] or reqs[6] or reqs[7]
 end
 
 function mod:updatePosition()

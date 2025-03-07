@@ -105,10 +105,10 @@ function mod:init(continued)
 		print("REPENTOGON has its own implementation of a Planetarium Chance HUD. Disabling Planetarium Chance mod in favor of REPENTOGON's.")
 		self.storage.repentogonEnabled = true;
 		Options.StatHUDPlanetarium = true;
+	else
+		self.storage.repentogonEnabled = nil
 	end
 	
-	self.storage.repentogonEnabled = nil
-
 	self.storage.available = Isaac.GetItemConfig():GetTrinket(TrinketType.TRINKET_TELESCOPE_LENS):IsAvailable() and 1 or 0
 	dogmaEnded = false
 	if not continued then

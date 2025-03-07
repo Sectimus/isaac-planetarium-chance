@@ -32,7 +32,6 @@ local function DidPlayerCharacterJustChange(player)
 end
 
 local function CanRunUnlockAchievements() -- by Xalum
-	if REPENTOGON then return not Game():AchievementUnlocksDisallowed() end
 	local machine = Isaac.Spawn(6, 11, 0, Vector.Zero, Vector.Zero, nil)
 	local achievementsEnabled = machine:Exists()
 	machine:Remove()
@@ -54,14 +53,12 @@ end
 
 function mod:onRender(shaderName)
 	if mod:shouldDeHook() then return end
-	if not REPENTOGON then
-		local isShader = shaderName == "UI_DrawPlanetariumChance_DummyShader"
+	local isShader = shaderName == "UI_DrawPlanetariumChance_DummyShader"
 
-		if not (Game():IsPaused() and Isaac.GetPlayer(0).ControlsEnabled) and not isShader then return end -- no render when unpaused
-		if (Game():IsPaused() and Isaac.GetPlayer(0).ControlsEnabled) and isShader then return end -- no shader when paused
+	if not (Game():IsPaused() and Isaac.GetPlayer(0).ControlsEnabled) and not isShader then return end -- no render when unpaused
+	if (Game():IsPaused() and Isaac.GetPlayer(0).ControlsEnabled) and isShader then return end -- no shader when paused
 
-		if shaderName ~= nil and not isShader then return end -- final failsafe
-	end
+	if shaderName ~= nil and not isShader then return end -- final failsafe
 
 	mod:updateCheck()
 
@@ -104,6 +101,11 @@ function mod:exit()
 end
 
 function mod:init(continued)
+	if REPENTOGON and self.storage.repentogonEnabled == nil then
+		print("REPENTOGON has its own implementation of a Planetarium Chance HUD. Disabling Planetarium Chance mod in favor of REPENTOGON's.")
+		self.storage.repentogonEnabled = true;
+	end
+	
 	self.storage.available = Isaac.GetItemConfig():GetTrinket(TrinketType.TRINKET_TELESCOPE_LENS):IsAvailable() and 1 or 0
 	dogmaEnded = false
 	if not continued then
@@ -203,10 +205,11 @@ function mod:shouldDeHook()
 		mod:isDogmaDefeated(),
 		IsBeastRoom(Game():GetRoom()),
 		Game():GetSeeds():HasSeedEffect(SeedEffect.SEED_NO_HUD),
+		self.storage.repentogonEnabled,
 		-- Game():IsGreedMode() //The chance should still display on Greed Mode even if its 0 for consistency with the rest of the HUD.
 	}
 
-	return reqs[1] or reqs[2] or reqs[3] or reqs[4] or reqs[5]
+	return reqs[1] or reqs[2] or reqs[3] or reqs[4] or reqs[5] or reqs[6]
 end
 
 function mod:updatePosition()
@@ -220,7 +223,11 @@ function mod:updatePosition()
 
 	local ShiftCount = 0
 
-	self.coords = Vector(0, 168)
+	if REPENTANCE_PLUS then
+		self.coords = Vector(0, 170)
+	else
+		self.coords = Vector(0, 168)
+	end
 
 	for i = 0, Game():GetNumPlayers() - 1 do
 		local player = Isaac.GetPlayer(i)
@@ -372,18 +379,14 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.updatePlanetariumChance)
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.init)
 mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.exit)
 
-if REPENTOGON then
-	mod:AddCallback(ModCallbacks.MC_POST_HUD_RENDER, mod.onRender)
-else
-	mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onRender)
-	mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.onRender)
+mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onRender)
+mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.onRender)
 
-		--Custom Shader Fix by AgentCucco
-	mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, function()
-		if #Isaac.FindByType(EntityType.ENTITY_PLAYER) == 0 then
-			Isaac.ExecuteCommand("reloadshaders")
-		end
-	end)
-end
+	--Custom Shader Fix by AgentCucco
+mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, function()
+	if #Isaac.FindByType(EntityType.ENTITY_PLAYER) == 0 then
+		Isaac.ExecuteCommand("reloadshaders")
+	end
+end)
 
 --mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.rKeyCheck, CollectibleType.COLLECTIBLE_R_KEY)

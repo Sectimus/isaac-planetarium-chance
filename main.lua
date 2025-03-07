@@ -107,6 +107,8 @@ function mod:init(continued)
 		Options.StatHUDPlanetarium = true;
 	end
 	
+	self.storage.repentogonEnabled = nil
+
 	self.storage.available = Isaac.GetItemConfig():GetTrinket(TrinketType.TRINKET_TELESCOPE_LENS):IsAvailable() and 1 or 0
 	dogmaEnded = false
 	if not continued then

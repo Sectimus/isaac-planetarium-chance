@@ -51,14 +51,8 @@ local function IsBeastRoom(room) -- same as how the vanilla game detects it
 	return room and room:GetType() == RoomType.ROOM_DUNGEON and room:GetRoomConfigStage() == 35 -- home
 end
 
-function mod:onRender(shaderName)
+function mod:onRender()
 	if mod:shouldDeHook() then return end
-	local isShader = shaderName == "UI_DrawPlanetariumChance_DummyShader"
-
-	if not (Game():IsPaused() and Isaac.GetPlayer(0).ControlsEnabled) and not isShader then return end -- no render when unpaused
-	if (Game():IsPaused() and Isaac.GetPlayer(0).ControlsEnabled) and isShader then return end -- no shader when paused
-
-	if shaderName ~= nil and not isShader then return end -- final failsafe
 
 	mod:updateCheck()
 
@@ -382,14 +376,6 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL, mod.updatePlanetariumChance)
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.init)
 mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.exit)
 
-mod:AddCallback(ModCallbacks.MC_GET_SHADER_PARAMS, mod.onRender)
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.onRender)
-
-	--Custom Shader Fix by AgentCucco
-mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, function()
-	if #Isaac.FindByType(EntityType.ENTITY_PLAYER) == 0 then
-		Isaac.ExecuteCommand("reloadshaders")
-	end
-end)
 
 --mod:AddCallback(ModCallbacks.MC_USE_ITEM, mod.rKeyCheck, CollectibleType.COLLECTIBLE_R_KEY)

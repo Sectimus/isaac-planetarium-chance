@@ -13,13 +13,18 @@ Make sure you have the requirements unlocked to be able to actually see the plan
 If you continue a previous run, the displayed value may not be correct for the current floor, however will correct itself for the following floor.
 
 [hr][/hr]
+[i]Sometimes the icon colour will be wrong, there is no way around this without the devs actually fixing the shader bug.[/i]
+[b](interim workaround is now implemented) There is currently a bug introduced into the base game of issac version v1.9.7.17 that breaks all mods that use shaders - please email the team so they are aware (I have done a few times now myself but have received no response).[/b] [url=https://www.reddit.com/r/bindingofisaac/comments/1st4hw4/custom_shader_rendering_bug_in_patch_19716/]A detailed visualization of the bug is shown on this post[/url] 
+
+
+[hr][/hr]
 
 Have any ideas? Found a bug? visit the mod repository @ https://github.com/Sectimus/isaac-planetarium-chance/issues
 
 Contributors: [url=https://steamcommunity.com/id/kittenchilly]@Kittenchilly[/url], [url=https://github.com/UnfairPath20]@UnfairPath20[/url]
     
 https://buymeacoffee.com/sectimus</description>
-    <version>11.0</version>
+    <version>11.1</version>
     <visibility>Public</visibility>
     <tag id="Lua"/>
     <tag id="Tweaks"/>

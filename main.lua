@@ -95,7 +95,7 @@ function mod:exit()
 end
 
 function mod:init(continued)
-	if REPENTOGON and self.storage.repentogonEnabled == nil then
+	if REPENTOGON then
 		print("REPENTOGON has its own implementation of a Planetarium Chance HUD. Disabling Planetarium Chance mod in favor of REPENTOGON's.")
 		self.storage.repentogonEnabled = true;
 		Options.StatHUDPlanetarium = true;
